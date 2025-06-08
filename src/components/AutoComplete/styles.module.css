@@ -1,0 +1,5 @@
+@reference '../../app/globals.css';
+
+.container {
+    /* here we have --primary-color, --outline-color, --fill-color, --text-color, --hover-color, --selection-color css variables */
+}
