@@ -28,6 +28,8 @@ type Props = {
     halfIncrement?: boolean;
     /** we can have mouse,touch interaction with icons  */
     hover?: boolean;
+    /** make rating clearable by double clicking */
+    clearable?: boolean;
     /** make rating section readonly */
     readOnly?: boolean;
     /** disable whole rating section and add fadeout effect */
@@ -48,6 +50,7 @@ export default function Rating({
     emptyIcon = 'ph:star-bold',
     halfIncrement = false,
     hover = true,
+    clearable = false,
     readOnly = false,
     disabled = false,
     className = ''
@@ -106,7 +109,7 @@ export default function Rating({
         onChange?.(newValue + 1);
     };
     const doubleClickHandler = () => {
-        onChange?.(0);
+        if (clearable) onChange?.(0);
     };
     const mouseMoveHandler = (e: MouseEvent<HTMLUListElement>) => {
         const newValue = getPositionValue(e.clientX);
@@ -146,5 +149,5 @@ export default function Rating({
 // const [val, setVal] = useState(0);
 // <Rating value={val} onChange={(newVal) => setVal(newVal)}
 //     length={5} hover halfIncrement={true} color='sky-600'
-//     size='md' spacing={20} readOnly={false} disabled={false}
+//     size='md' spacing={20} readOnly={false} disabled={false} clearable
 // />
