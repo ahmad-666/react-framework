@@ -1,0 +1,19 @@
+@reference '../../app/globals.css';
+
+.container {
+    .page-item {
+        @apply text-neutral cursor-pointer rounded-xs p-2;
+        &.disabled {
+            @apply pointer-events-none opacity-30;
+        }
+        &.circular {
+            @apply rounded-circle;
+        }
+        &.active {
+            @apply text-white;
+        }
+        .page {
+            @apply flex h-full w-full items-center justify-center;
+        }
+    }
+}
