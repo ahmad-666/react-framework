@@ -37,6 +37,8 @@ const AutoComplete = <Opt extends Option>({
     placeholder,
     labelPos = 'inside',
     label,
+    labelKey = 'label',
+    valueKey = 'value',
     loadingText = 'Loading ...',
     noDataText = 'No data found !',
     inputName,
@@ -117,10 +119,10 @@ const AutoComplete = <Opt extends Option>({
     const labelAscended = isFocus || hasValue || placeholder; //ascend label if we have focus,value,placeholder
     const isOptionSelected = useCallback(
         (option: Opt) => {
-            if (!multiple) return value?.value === option.value;
-            return !!value.find((val) => val.value === option.value);
+            if (!multiple) return value?.[valueKey] === option[valueKey];
+            return !!value.find((val) => val[valueKey] === option[valueKey]);
         },
-        [value, multiple]
+        [value, multiple, valueKey]
     );
     const filteredOptions = useMemo(() => {
         const filteredOptions: Opt[] = options.filter((option) =>
@@ -131,27 +133,27 @@ const AutoComplete = <Opt extends Option>({
             if (filterFn) return filterFn(searchLocal, options);
             else {
                 return filteredOptions.filter((option) =>
-                    option.label.toLowerCase().includes(searchLocal.toLowerCase())
+                    (option[labelKey] as string).toLowerCase().includes(searchLocal.toLowerCase())
                 );
             }
         }
-    }, [applyFilter, options, searchLocal, filterSelections, isOptionSelected, filterFn]);
+    }, [applyFilter, options, searchLocal, labelKey, filterSelections, isOptionSelected, filterFn]);
     const comboboxHandler = useCallback(() => {
-        const optionalOption = searchLocal ? ({ value: searchLocal, label: searchLocal } as Opt) : null;
-        const targetOption = options.find((option) => option.label === optionalOption?.label);
+        const optionalOption = searchLocal ? ({ [valueKey]: searchLocal, [labelKey]: searchLocal } as Opt) : null;
+        const targetOption = options.find((option) => option[labelKey] === optionalOption?.[labelKey]);
         if (targetOption || optionalOption) {
             if (!multiple) onChange?.(targetOption || optionalOption);
             else {
                 const newValue = [...value, targetOption || optionalOption] as Opt[];
-                const filteredNewValue = Array.from(new Map(newValue.map((opt) => [opt.value, opt])).values());
+                const filteredNewValue = Array.from(new Map(newValue.map((opt) => [opt[valueKey], opt])).values());
                 onChange?.(filteredNewValue);
             }
         }
-    }, [value, multiple, options, searchLocal, onChange]);
+    }, [value, multiple, options, searchLocal, labelKey, valueKey, onChange]);
     const focusHandler = useCallback(() => {
         const firstSelectedOption = filteredOptions.find((option) => isOptionSelected(option));
         const firstSelectedOptionIdx = filteredOptions.findIndex(
-            (option) => option.value === firstSelectedOption?.value
+            (option) => option[valueKey] === firstSelectedOption?.[valueKey]
         );
         localInputRef.current.focus();
         localInputRef.current.select();
@@ -160,7 +162,7 @@ const AutoComplete = <Opt extends Option>({
         onMenuChange?.(true);
         setFocusedOptionIdx(firstSelectedOptionIdx);
         onFocus?.(localContainerRef);
-    }, [filteredOptions, isOptionSelected, onFocus, onMenuChange]);
+    }, [filteredOptions, isOptionSelected, valueKey, onFocus, onMenuChange]);
     const blurHandler = useCallback(
         (selectedOption: null | Opt, reason: BlurReason) => {
             localInputRef.current.blur();
@@ -222,7 +224,7 @@ const AutoComplete = <Opt extends Option>({
             onChange?.(newValue);
         } else {
             const isSelected = isOptionSelected(option);
-            newValue = !isSelected ? [...value, option] : value.filter((val) => val.value !== option.value);
+            newValue = !isSelected ? [...value, option] : value.filter((val) => val[valueKey] !== option[valueKey]);
             onChange?.(newValue);
         }
     };
@@ -232,7 +234,7 @@ const AutoComplete = <Opt extends Option>({
             newValue = null;
             onChange?.(newValue);
         } else {
-            newValue = value.filter((val) => val.value !== chipOption.value);
+            newValue = value.filter((val) => val[valueKey] !== chipOption[valueKey]);
             onChange?.(newValue);
         }
     };
@@ -307,7 +309,7 @@ const AutoComplete = <Opt extends Option>({
                         style={{
                             minHeight: multiple ? `${textfieldHeight}px` : 'initial',
                             height: !multiple ? `${textfieldHeight}px` : 'auto',
-                            backgroundColor: variant === 'filled' ? parsedFillColor : 'transparent'
+                            backgroundColor: variant === 'fill' ? parsedFillColor : 'transparent'
                         }}
                     >
                         {!!(prependInnerRender || prependInnerIcon) && (
@@ -328,20 +330,20 @@ const AutoComplete = <Opt extends Option>({
                                             color: parsedTextColor
                                         }}
                                     >
-                                        {value?.label}
+                                        {value?.[labelKey] as string}
                                     </p>
                                 ))}
                             {/* if multiple:true and we have value then loop through values and first check if we have valueRenderer use it else manually create a chip */}
                             {!!(multiple && value.length) &&
                                 value.map((val) => (
                                     <div
-                                        key={val.value}
+                                        key={val[valueKey] as string}
                                         className={`text-label-lg flex max-w-full items-center gap-2 rounded-full px-2 py-1 text-white ${classNames.value}`}
                                         style={{
                                             backgroundColor: parsedPrimaryColor
                                         }}
                                     >
-                                        {valueRender?.(val) || val.label}
+                                        {valueRender?.(val) || (val[labelKey] as string)}
                                         <button
                                             type='button'
                                             onClick={() => onChipCloseHandler(val)}
@@ -466,7 +468,7 @@ const AutoComplete = <Opt extends Option>({
                                         const isFocused = focusedOptionIdx === idx;
                                         return (
                                             <li
-                                                key={option.value}
+                                                key={option[valueKey] as string}
                                                 ref={(node: null | HTMLLIElement) => {
                                                     if (node && isFocused) {
                                                         focusedOptionRef.current = node;
@@ -502,14 +504,14 @@ const AutoComplete = <Opt extends Option>({
                                                                 color: parsedTextColor
                                                             }}
                                                         >
-                                                            {option.label}
+                                                            {option[labelKey] as string}
                                                         </span>
                                                     ))}
                                                 {multiple &&
                                                     (optionRender?.(option, isSelected) || (
                                                         <Checkbox
                                                             checked={isSelected}
-                                                            value={`${option.value}`}
+                                                            value={`${option[valueKey] as string}`}
                                                             // onChange={()=>{}} // we don't need it because we handle it in the onOptionSelect
                                                             color={parsedPrimaryColor}
                                                             size='md'
@@ -523,7 +525,7 @@ const AutoComplete = <Opt extends Option>({
                                                                     color: parsedTextColor
                                                                 }}
                                                             >
-                                                                {option.label}
+                                                                {option[labelKey] as string}
                                                             </span>
                                                         </Checkbox>
                                                     ))}
@@ -572,42 +574,3 @@ export default AutoComplete;
 //* for outline variant we use border on <fieldset>
 //* we use visible <label> and base on focus state change it position also we add hidden <legend> inside <fieldset> with same typography as <label> so it take same space ... because changing transform:scale not affect sizing of <legend> then we change font-size base on focus state
 //* use left/right padding on <fieldset> to set starting location of <legend> empty space and use left/right padding on <legend> to set amount of extra empty space also amount of translate-x on <label> is related to total amount of left/right padding on <fieldset> and <legend>
-//? Usage:
-// import AutoComplete, { type Option } from '@/components/AutoComplete';
-// type CustomOption = Option & { desc: string };
-// const options: CustomOption[] = Array.from({ length: 50 }, (_, i) => ({value: i + 1,label: `item-${i + 1}`,desc: 'desc'}));
-//* #1: simple autocomplete :
-// const [val, setVal] = useState<null | CustomOption>(null);
-// <AutoComplete labelPos='inside' mode='autocomplete' variant='outline' size='md'
-//     placeholder='Placeholder' label='Label' options={options}  clearable
-//     value={val} onChange={(newVal) => setVal(newVal)}
-// />
-//* #2: multiple combobox with custom valueRender,optionRender:
-// const [val, setVal] = useState<CustomOption[]>([]);
-// <AutoComplete labelPos='outside' mode='combobox' variant='fill' size='lg'
-//     label='Label' options={options} multiple
-//     valueRender={(valueOption) => <span>{valueOption?.desc}</span>}
-//     optionRender={(option, isSelected) => <span>{option.desc}</span>}
-//     value={val} onChange={(newVal) => setVal2(newVal)} clearable
-// />
-//* #3: single autocomplete with validation using reach-hook-form and controlled search,menu props:
-// const { control, handleSubmit, reset } = useForm<{ country: null | Option }>({
-//     defaultValues: {country: null},mode: 'onSubmit'
-// });
-// const [search, setSearch] = useState('5');
-// const [menu, setMenu] = useState(true);
-// const onSubmit = (data: { country: null | Option }) => {reset();};
-// <form onSubmit={handleSubmit(onSubmit)}>
-//     <Controller
-//         control={control} name='country' rules={{ required: 'required' }}
-//         render={({ field, fieldState }) => (
-//             <AutoComplete {...field} mode='autocomplete' options={options}
-//                 value={field.value} onChange={(newVal) => field.onChange(newVal)}
-//                 search={search} onSearchChange={setSearch}
-//                 menu={menu} onMenuChange={setMenu}
-//                 error={!!fieldState.error} message={fieldState.error?.message}
-//             />
-//         )}
-//     />
-//     <button type='submit'>submit</button>
-// </form>

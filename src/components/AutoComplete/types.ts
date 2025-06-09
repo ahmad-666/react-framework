@@ -1,16 +1,16 @@
 import { type RefObject, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 
 export type Mode = 'select' | 'autocomplete' | 'combobox';
-export type Variant = 'filled' | 'outline';
+export type Variant = 'fill' | 'outline';
 export type Size = number | 'sm' | 'md' | 'lg';
 export type LabelPos = 'inside' | 'outside';
 export type BlurReason = 'click-outside' | 'option-select';
 export type SelectReason = 'option-click' | 'enter-key';
 export type Option = {
-    /** default value of each option for selection */
-    value: number | string;
-    /** default text of each option that we show in UI */
-    label: string;
+    /** default value of each option for selection ... can be changed by valueKey prop */
+    value?: number | string;
+    /** default text of each option that we show in UI ... can be changed by labelKey prop */
+    label?: string;
     disabled?: boolean;
     [key: string]: unknown;
 };
@@ -67,6 +67,10 @@ export type BaseAutoCompleteProps<Opt extends Option> = {
     labelPos?: LabelPos;
     /** label */
     label?: string;
+    /** name of key in each option that will be used as label */
+    labelKey?: string;
+    /** name of key in each option that will be used as value */
+    valueKey?: string;
     /** text for loading:true state */
     loadingText?: string;
     /** text if no options are available */
