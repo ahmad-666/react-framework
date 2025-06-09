@@ -11,8 +11,8 @@ const options: CustomOption[] = Array.from({ length: 50 }, (_, i) => ({
 
 const AutoCompleteExample = () => {
     const [val1, setVal1] = useState<null | CustomOption>(null);
-    const [val2, setVal2] = useState<CustomOption[]>([]);
-    console.log('🚀 ~ AutoCompleteExample ~ val2:', val2);
+    const [val2, setVal2] = useState<null | CustomOption>(null);
+    const [val3, setVal3] = useState<CustomOption[]>([]);
     const { control, handleSubmit, reset } = useForm<{ country: null | Option }>({
         defaultValues: { country: null },
         mode: 'onSubmit'
@@ -26,6 +26,16 @@ const AutoCompleteExample = () => {
     return (
         <div>
             <div>
+                <h5 className='mb-8'>#1: Simple select</h5>
+                <AutoComplete
+                    mode='select'
+                    placeholder='Placeholder'
+                    options={options}
+                    value={val1}
+                    onChange={(newVal) => setVal1(newVal)}
+                />
+            </div>
+            <div>
                 <h5 className='mb-8'>#1: Simple autocomplete</h5>
                 <AutoComplete
                     labelPos='inside'
@@ -36,8 +46,8 @@ const AutoCompleteExample = () => {
                     label='Label'
                     options={options}
                     clearable
-                    value={val1}
-                    onChange={(newVal) => setVal1(newVal)}
+                    value={val2}
+                    onChange={(newVal) => setVal2(newVal)}
                 />
             </div>
             <div className='mt-20'>
@@ -50,8 +60,8 @@ const AutoCompleteExample = () => {
                     label='Label'
                     options={options}
                     multiple
-                    value={val2}
-                    onChange={(newVal) => setVal2(newVal)}
+                    value={val3}
+                    onChange={(newVal) => setVal3(newVal)}
                     clearable
                 />
             </div>

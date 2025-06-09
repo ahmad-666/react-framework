@@ -89,8 +89,6 @@ export default function TextField({
     const [isFocus, setIsFocus] = useState(false);
     const accentColor = error ? 'error' : isFocus ? color : 'neutral-dark4';
     const parsedAccentColor = useColor(accentColor);
-    console.log('🚀 ~ accentColor:', accentColor, parsedAccentColor);
-
     const height = size === 'sm' ? 32 : size === 'md' ? 36 : size === 'lg' ? 44 : size;
     const refHandler = (node: null | HTMLInputElement | HTMLTextAreaElement) => {
         if (node) {

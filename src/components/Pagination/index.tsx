@@ -51,11 +51,11 @@ export default function Pagination({
     const pageSize = (() => {
         switch (size) {
             case 'sm':
-                return 35;
+                return 30;
             case 'md':
-                return 45;
+                return 40;
             case 'lg':
-                return 55;
+                return 50;
             default:
                 return size;
         }
@@ -104,7 +104,7 @@ export default function Pagination({
         return hrefGenerator ? hrefGenerator(page) : defaultHrefGenerator(page);
     };
     const onPageClick = (newPage: number) => {
-        if (onChange) onChange(newPage);
+        onChange?.(newPage);
     };
     const onPrevPage = () => {
         onPageClick(Math.max(paginationConfig.firstPage, value - 1));
@@ -139,7 +139,7 @@ export default function Pagination({
                                 }}
                                 className={styles.page}
                             >
-                                <Icon icon='solar:alt-arrow-left-outline' size='md' color='neutral' />
+                                <Icon icon='solar:alt-arrow-left-outline' size='sm' color='neutral' />
                             </a>
                         </li>
                     )}
@@ -194,7 +194,7 @@ export default function Pagination({
                                 }}
                                 className={styles.page}
                             >
-                                <Icon icon='solar:alt-arrow-right-outline' size='md' color='neutral' />
+                                <Icon icon='solar:alt-arrow-right-outline' size='sm' color='neutral' />
                             </a>
                         </li>
                     )}

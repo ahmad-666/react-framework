@@ -7,7 +7,9 @@ type Size = number | 'sm' | 'md' | 'lg';
 type Props = {
     id?: string;
     name?: string;
+    /** boolean value for specifying if checkbox is checked or not */
     checked: boolean;
+    /** value of specific checkbox ... always use string even for multiple:true */
     value?: string;
     onChange?: (checked: boolean, value: string) => void;
     size?: Size;

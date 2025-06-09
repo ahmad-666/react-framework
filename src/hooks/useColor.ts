@@ -4,13 +4,12 @@ import { useState, useEffect } from 'react';
 import twColors from 'tailwindcss/colors';
 // import paletteColors from '@/themes/mui/palette';
 
-type Splitter = '.' | '-';
-const useColor = (input: string, splitter?: Splitter) => {
+const useColor = (input: string) => {
     //?it supports 'primary','primary-light1','primary.light1' formats
     const getColor = () => {
         const rootStyles = getComputedStyle(document.documentElement);
-        const colorSplitter = splitter || input.includes('.') ? '.' : '-';
-        const colorSplit = input.split(colorSplitter) || [];
+        const splitter = input.includes('.') ? '.' : '-'; //'.' for mui colors and '-' for tailwind colors
+        const colorSplit = input.split(splitter) || [];
         const [colorName, colorVariant = ''] = colorSplit;
         const paletteColor = rootStyles.getPropertyValue(
             `--color-${[colorName, colorVariant].filter((c) => c).join('-')}`
@@ -19,7 +18,7 @@ const useColor = (input: string, splitter?: Splitter) => {
         const twColor = twColors[colorName]?.[colorVariant];
         return paletteColor || twColor || input || 'transparent';
     };
-    const [color, setColor] = useState();
+    const [color, setColor] = useState<string>('transparent');
     useEffect(() => {
         const newColor = getColor();
         setColor(newColor);

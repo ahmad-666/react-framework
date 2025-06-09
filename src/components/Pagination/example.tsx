@@ -18,7 +18,7 @@ export default function PaginationExample() {
 
     return (
         <div>
-            <p>active: {page}</p>
+            <h5>active: {page}</h5>
             <Pagination
                 value={page}
                 onChange={(newPage) => setPage(newPage)}

@@ -117,6 +117,7 @@ const AutoComplete = <Opt extends Option>({
     const arrowIconSize = size === 'lg' ? 30 : size === 'sm' ? 22 : 26; //size of arrow(chevron) icon
     const closeIconSize = size === 'lg' ? 22 : size === 'sm' ? 16 : 20; //size of close icon
     const labelAscended = isFocus || hasValue || placeholder; //ascend label if we have focus,value,placeholder
+    const hideInput = (mode === 'select' && hasValue) || (mode !== 'select' && !multiple && hasValue && !isFocus);
     const isOptionSelected = useCallback(
         (option: Opt) => {
             if (!multiple) return value?.[valueKey] === option[valueKey];
@@ -369,7 +370,7 @@ const AutoComplete = <Opt extends Option>({
                                 readOnly={readOnly || mode === 'select'}
                                 disabled={disabled}
                                 placeholder={placeholder}
-                                className={`text-body-md placeholder:text-label-lg inline-block h-6 appearance-none overflow-hidden border-none outline-none placeholder:text-slate-300 ${!multiple && value && !isFocus ? 'pointer-events-none w-0 opacity-0' : 'w-25 grow'} ${classNames.input}`}
+                                className={`text-body-md placeholder:text-label-lg inline-block h-6 appearance-none overflow-hidden border-none outline-none placeholder:text-slate-300 ${hideInput ? 'pointer-events-none w-0 opacity-0' : 'w-25 grow'} ${classNames.input}`}
                                 style={{
                                     color: parsedTextColor
                                 }}
