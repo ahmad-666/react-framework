@@ -107,7 +107,7 @@ export default function OTP({
                     {label}
                 </FormLabel>
             )}
-            <ul className='flex flex-wrap gap-3'>
+            <ul dir='ltr' className='flex flex-wrap justify-center gap-3'>
                 {Array.from({ length }).map((_, i) => (
                     <li key={i}>
                         <input
