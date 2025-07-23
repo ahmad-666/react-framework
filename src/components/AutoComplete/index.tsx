@@ -111,7 +111,7 @@ const AutoComplete = <Opt extends Option>({
     const hasValue = !!(multiple ? value?.length : value);
     const isError = !!error;
     const accentColor = isError ? parsedErrorColor : isFocus ? parsedPrimaryColor : parsedTextColor;
-    const parseAccentColor = useColor(accentColor!);
+    const parseAccentColor = useColor(accentColor! || 'transparent');
     const textfieldHeight = size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 48 : 40; //height of wrapper for multiple:false and min-height of wrapper for multiple:true
     const iconSize = size === 'lg' ? 28 : size === 'sm' ? 20 : 24; //size of icons and circular loader except chevron,close icon
     const arrowIconSize = size === 'lg' ? 30 : size === 'sm' ? 22 : 26; //size of arrow(chevron) icon
@@ -410,7 +410,7 @@ const AutoComplete = <Opt extends Option>({
                             <FormLabel
                                 inputId={finalId}
                                 color={accentColor}
-                                className={`pointer-events-none absolute left-0 origin-left -translate-y-1/2 transition-all duration-300 ${labelAscended ? `text-label-md translate-x-4 ${variant === 'outline' ? 'top-0' : '-top-3'}` : `text-label-lg top-1/2 ${!!(prependInnerIcon || prependInnerRender) ? 'translate-x-12' : 'translate-x-4'}`} ${classNames.label}`}
+                                className={`pointer-events-none absolute left-0 origin-left -translate-y-1/2 transition-all duration-300 rtl:right-0 rtl:origin-right rtl:-translate-x-4.5 ${labelAscended ? `text-label-md translate-x-4.5 ${variant === 'outline' ? 'top-0' : '-top-3'}` : `text-label-lg top-1/2 ${!!(prependInnerIcon || prependInnerRender) ? 'translate-x-12 rtl:-translate-x-12' : 'translate-x-4.5 rtl:-translate-x-4.5'}`} ${classNames.label}`}
                             >
                                 {label}
                             </FormLabel>

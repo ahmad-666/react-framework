@@ -42,7 +42,7 @@ const AutoCompleteExample = () => {
                     mode='autocomplete'
                     variant='outline'
                     size='md'
-                    placeholder='Placeholder'
+                    // placeholder='Placeholder'
                     label='Label'
                     options={options}
                     clearable
