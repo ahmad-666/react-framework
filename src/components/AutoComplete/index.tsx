@@ -158,7 +158,6 @@ const AutoComplete = <Opt extends Option>({
             (option) => option[valueKey] === firstSelectedOption?.[valueKey]
         );
         localInputRef.current.focus();
-        localInputRef.current.select();
         setIsFocus(true);
         setMenuLocal(true);
         onMenuChange?.(true);
@@ -166,12 +165,14 @@ const AutoComplete = <Opt extends Option>({
         if (!multiple) {
             setSearchLocal(firstSelectedOption?.label || '');
             onSearchChange?.(firstSelectedOption?.label || '');
-            setTimeout(() => {
-                localInputRef?.current.select();
-            }, 0);
+            if (!isFocus) {
+                setTimeout(() => {
+                    localInputRef?.current.select();
+                }, 0);
+            }
         }
         onFocus?.(localContainerRef);
-    }, [multiple, filteredOptions, isOptionSelected, valueKey, onFocus, onMenuChange, onSearchChange]);
+    }, [multiple, isFocus, filteredOptions, isOptionSelected, valueKey, onFocus, onMenuChange, onSearchChange]);
     const blurHandler = useCallback(
         (selectedOption: null | Opt, reason: BlurReason) => {
             localInputRef.current.blur();
@@ -261,7 +262,7 @@ const AutoComplete = <Opt extends Option>({
     useEffect(() => {
         //update local state for search every time 'search' prop changes
         setSearchLocal(search || '');
-        setApplyFilter(true);
+        if (search) setApplyFilter(true);
     }, [search]);
     useEffect(() => {
         //update local state for menu every time 'menu' prop changes
