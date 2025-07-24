@@ -73,7 +73,7 @@ const Menu = (
                 if (node && ref) (ref as RefObject<HTMLDivElement>).current = node;
             }}
             onClick={onClick}
-            className={`shadow-full-md absolute max-h-40 max-w-full overflow-auto p-4 ${animation === 'fade-in' ? styles['fade-in'] : ''} ${className}`}
+            className={`absolute max-h-40 max-w-full overflow-auto p-4 shadow-md ${animation === 'fade-in' ? styles['fade-in'] : ''} ${className}`}
             style={{
                 zIndex,
                 left,

@@ -23,6 +23,8 @@ export type Theme = {
     fill?: string;
     /** base text color */
     text?: string;
+    /** accent color for label,icons,... */
+    accent?: string;
     /** hover background color for options */
     hover?: string;
     /** selection background color for options */

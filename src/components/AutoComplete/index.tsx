@@ -105,12 +105,13 @@ const AutoComplete = <Opt extends Option>({
     const parsedOutlineColor = useColor(theme.outline || colors.outline!);
     const parsedFillColor = useColor(theme.fill || colors.fill!);
     const parsedTextColor = useColor(theme.text || colors.text!);
+    const parsedAccentColor = useColor(theme.accent || colors.accent!);
     const parsedHoverColor = useColor(theme.hover || colors.hover!);
     const parsedSelectionColor = useColor(theme.selection || colors.selection!);
     const parsedErrorColor = useColor(theme.error || colors.error!);
     const hasValue = !!(multiple ? value?.length : value);
     const isError = !!error;
-    const accentColor = isError ? parsedErrorColor : isFocus ? parsedPrimaryColor : parsedTextColor;
+    const accentColor = isError ? parsedErrorColor : isFocus ? parsedPrimaryColor : parsedAccentColor;
     const parseAccentColor = useColor(accentColor! || 'transparent');
     const textfieldHeight = size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 48 : 40; //height of wrapper for multiple:false and min-height of wrapper for multiple:true
     const iconSize = size === 'lg' ? 28 : size === 'sm' ? 20 : 24; //size of icons and circular loader except chevron,close icon
@@ -162,8 +163,15 @@ const AutoComplete = <Opt extends Option>({
         setMenuLocal(true);
         onMenuChange?.(true);
         setFocusedOptionIdx(firstSelectedOptionIdx);
+        if (!multiple) {
+            setSearchLocal(firstSelectedOption?.label || '');
+            onSearchChange?.(firstSelectedOption?.label || '');
+            setTimeout(() => {
+                localInputRef?.current.select();
+            }, 0);
+        }
         onFocus?.(localContainerRef);
-    }, [filteredOptions, isOptionSelected, valueKey, onFocus, onMenuChange]);
+    }, [multiple, filteredOptions, isOptionSelected, valueKey, onFocus, onMenuChange, onSearchChange]);
     const blurHandler = useCallback(
         (selectedOption: null | Opt, reason: BlurReason) => {
             localInputRef.current.blur();
@@ -276,6 +284,7 @@ const AutoComplete = <Opt extends Option>({
                     '--outline-color': parsedOutlineColor,
                     '--fill-color': parsedFillColor,
                     '--text-color': parsedTextColor,
+                    '--accent-color': parsedAccentColor,
                     '--hover-color': parsedHoverColor,
                     '--selection-color': parsedSelectionColor,
                     ...style
@@ -323,10 +332,10 @@ const AutoComplete = <Opt extends Option>({
                         )}
                         <div className='flex grow flex-wrap items-center gap-1'>
                             {/* if multiple:false and we have value then first check if we have valueRenderer use it else use simple <p> tag with  */}
-                            {!!(!multiple && value) &&
+                            {!!(!multiple && value && !isFocus) &&
                                 (valueRender?.(value) || (
                                     <p
-                                        className={`text-body-md ${classNames.value}`}
+                                        className={`text-body-md line-clamp-1 ${classNames.value}`}
                                         style={{
                                             color: parsedTextColor
                                         }}
@@ -339,7 +348,7 @@ const AutoComplete = <Opt extends Option>({
                                 value.map((val) => (
                                     <div
                                         key={val[valueKey] as string}
-                                        className={`text-label-lg flex max-w-full items-center gap-2 rounded-full px-2 py-1 text-white ${classNames.value}`}
+                                        className={`text-body-md flex max-w-full items-center gap-2 rounded-full px-2 py-1 text-white ${classNames.value}`}
                                         style={{
                                             backgroundColor: parsedPrimaryColor
                                         }}
@@ -370,7 +379,7 @@ const AutoComplete = <Opt extends Option>({
                                 readOnly={readOnly || mode === 'select'}
                                 disabled={disabled}
                                 placeholder={placeholder}
-                                className={`text-body-md placeholder:text-label-lg inline-block h-6 appearance-none overflow-hidden border-none outline-none placeholder:text-slate-300 ${hideInput ? 'pointer-events-none w-0 opacity-0' : 'w-25 grow'} ${classNames.input}`}
+                                className={`text-body-md placeholder:text-label-lg inline-block appearance-none overflow-hidden border-none outline-none placeholder:text-slate-300 ${hideInput ? 'pointer-events-none h-0 w-0 opacity-0' : 'h-6 w-25 grow'} ${classNames.input}`}
                                 style={{
                                     color: parsedTextColor
                                 }}
@@ -484,7 +493,7 @@ const AutoComplete = <Opt extends Option>({
                                                     e.stopPropagation(); //not propagate to parent element so we don't face conflicts with onClick of container
                                                     onOptionSelect(option, 'option-click');
                                                 }}
-                                                className={`cursor-pointer p-2 transition-colors duration-300 ${option.disabled ? 'pointer-events-none opacity-50' : ''} ${classNames.option}`}
+                                                className={`cursor-pointer rounded-md p-2 transition-colors duration-300 ${option.disabled ? 'pointer-events-none opacity-50' : ''} ${classNames.option}`}
                                                 style={{
                                                     backgroundColor: isSelected
                                                         ? parsedSelectionColor
