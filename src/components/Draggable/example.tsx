@@ -5,7 +5,7 @@ export default function DraggableExample() {
         <div>
             <Draggable
                 free={false}
-                speed={1.5}
+                speed={0.75}
                 transitionDuration={500}
                 wrapperClassName='!gap-10'
                 className='border border-orange-500 p-10'

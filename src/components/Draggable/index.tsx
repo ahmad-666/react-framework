@@ -1,9 +1,12 @@
 'use client';
 
-import { useRef, useState, useEffect, type ReactNode, type MouseEvent, type TouchEvent } from 'react';
+import { useRef, useState, useEffect, useCallback, type ReactNode } from 'react';
 
 type Props = {
-    /** control drag speed */
+    /** control drag speed
+     *
+     *  use lower that 1 values for applying threshold on start/end
+     * */
     speed?: number;
     /** in ms for snap transition */
     transitionDuration?: number;
@@ -15,7 +18,7 @@ type Props = {
 };
 
 export default function Draggable({
-    speed = 1,
+    speed = 0.75,
     transitionDuration = 150,
     free = false,
     children,
@@ -31,18 +34,21 @@ export default function Draggable({
     const startPos = useRef(0);
     const endPos = useRef(0);
 
-    const startHandler = (e: MouseEvent | TouchEvent) => {
+    const startHandler = (e: React.MouseEvent | React.TouchEvent) => {
         setIsDragging(true);
         const { clientX } = 'touches' in e ? e.touches[0] : e;
         startPos.current = clientX - containerBounds.current.left;
     };
-    const moveHandler = (e: MouseEvent | TouchEvent) => {
-        if (!isDragging) return;
-        const { clientX } = 'touches' in e ? e.touches[0] : e;
-        const movement = endPos.current + (clientX - containerBounds.current.left - startPos.current) * speed; //for prevent any jump effect we should start from previous end position
-        wrapper.current.style.transform = `translate(${movement}px,0px)`;
-    };
-    const endHandler = () => {
+    const moveHandler = useCallback(
+        (e: MouseEvent | TouchEvent) => {
+            if (!isDragging) return;
+            const { clientX } = 'touches' in e ? e.touches[0] : e;
+            const movement = endPos.current + (clientX - containerBounds.current.left - startPos.current) * speed; //for prevent any jump effect we should start from previous end position
+            wrapper.current.style.transform = `translate(${movement}px,0px)`;
+        },
+        [isDragging, speed]
+    );
+    const endHandler = useCallback(() => {
         setIsDragging(false);
         const styles = getComputedStyle(wrapper.current);
         const matrix = new DOMMatrixReadOnly(styles.transform);
@@ -62,7 +68,7 @@ export default function Draggable({
         setTimeout(() => {
             wrapper.current.style.transition = '';
         }, transitionDuration);
-    };
+    }, [free, transitionDuration]);
     useEffect(() => {
         const ro = new ResizeObserver(() => {
             const containerElm = container.current;
@@ -84,17 +90,28 @@ export default function Draggable({
             ro.disconnect();
         };
     }, []);
+    useEffect(() => {
+        //* We use onMouseDown/onTouchStart on container element for find out that we are dragging
+        //* We use onMouseMove/onTouchMove/onMouseUp/onTouchEnd on window element because user can still drag even outside of container.
+        if (isDragging) {
+            window.addEventListener('mousemove', moveHandler);
+            window.addEventListener('touchmove', moveHandler);
+            window.addEventListener('mouseup', endHandler);
+            window.addEventListener('touchend', endHandler);
+        }
+        return () => {
+            window.removeEventListener('mousemove', moveHandler);
+            window.removeEventListener('touchmove', moveHandler);
+            window.removeEventListener('mouseup', endHandler);
+            window.removeEventListener('touchend', endHandler);
+        };
+    }, [isDragging, moveHandler, endHandler]);
 
     return (
         <div
             ref={container}
             onMouseDown={startHandler}
             onTouchStart={startHandler}
-            onMouseMove={moveHandler}
-            onTouchMove={moveHandler}
-            onMouseUp={endHandler}
-            onMouseLeave={endHandler}
-            onTouchEnd={endHandler}
             className={`overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
         >
             <div ref={wrapper} className={`flex flex-nowrap gap-6 [&>*]:shrink-0 ${wrapperClassName}`}>
