@@ -68,7 +68,7 @@ export default function Slider({
     const trackRef = useRef<HTMLDivElement>(null!); //hold DOM node of container element
     const activeTrackRef = useRef<HTMLDivElement>(null!); //hold DOM node of active track element
     const thumbsRefs = useRef<HTMLDivElement[]>([]); //hold DOM nodes of thumbs elements
-    const values = useRef<number[]>(!multiple ? [value] : value); //hold final values of thumbs for updating parent(contains literal slider values not pixels or percentages) ... we use 'ref' for better performance and manually update DOM node styles
+    const values = useRef<number[]>(!multiple ? [value] : [...value]); //hold final values of thumbs for updating parent(contains literal slider values not pixels or percentages) ... we use 'ref' for better performance and manually update DOM node styles
     const [draggingIdx, setDraggingIdx] = useState<null | number>(null);
     const trackParsedColor = useColor(trackColor);
     const activeTrackParsedColor = useColor(activeTrackColor);
@@ -85,38 +85,49 @@ export default function Slider({
         },
         [min, max]
     );
+    const updateValue = useCallback(() => {
+        if (!multiple) onChange?.(values.current[0]);
+        else onChange?.(values.current.toSorted((a, b) => a - b));
+    }, [multiple, onChange]);
     const thumbMoveHandler = useCallback(
         (newValue: number, thumbIdx: number) => {
             // 'newValue' is the value of the thumb that is being dragged ...it is not pixels or percentage
             // 'thumbIdx' is the index of the thumb that is being dragged
             // inside this method we update 'values.current' refs and update DOM nodes(activeTrack,thumbs) styles
             const activeTrack = activeTrackRef.current;
-            const draggingThumb = thumbsRefs.current[thumbIdx];
             const snapToStep = Math.max(min, Math.min(Math.round(newValue / step) * step, max));
-            values.current[thumbIdx] = snapToStep;
-            const start = values.current[0];
-            const end = values.current[1];
+            let idx = thumbIdx;
             if (!multiple) {
-                activeTrack.style.width = `${valueToPercent(start)}%`;
+                activeTrack.style.width = `${valueToPercent(snapToStep)}%`;
                 activeTrack.style.left = `${0}%`;
             } else {
+                if ((idx === 0 && snapToStep > values.current[1]) || (idx === 1 && snapToStep < values.current[0])) {
+                    [values.current[0], values.current[1]] = [values.current[1], values.current[0]];
+                    idx = idx === 0 ? 1 : 0;
+                    setDraggingIdx(idx);
+                }
+                const [start, end] = values.current;
                 activeTrack.style.width = `${valueToPercent(end) - valueToPercent(start)}%`;
                 activeTrack.style.left = `${valueToPercent(start)}%`;
             }
+            const draggingThumb = thumbsRefs.current[idx];
             draggingThumb.style.left = `${valueToPercent(snapToStep)}%`;
+            values.current[idx] = snapToStep;
         },
         [multiple, min, max, step, valueToPercent]
     );
     const onTrackClick = (e: React.MouseEvent) => {
-        if (draggingIdx !== null) return;
+        if (draggingIdx !== null) return null;
         const { clientX } = e;
         const track = trackRef.current;
+        const vals = values.current;
         const px = clientX - track.getBoundingClientRect().left;
         const percent = px / track.offsetWidth;
         const newValue = percentToValue(percent);
-        thumbMoveHandler(newValue, 0); //when click on track we move the 1st thumb
-        if (!multiple) onChange?.(values.current[0]);
-        else onChange?.(values.current);
+        const nearestValue = vals.toSorted((a, b) => Math.abs(a - newValue) - Math.abs(b - newValue))[0];
+        const nearestThumbIdx = vals.findIndex((v) => v === nearestValue);
+        thumbMoveHandler(newValue, nearestThumbIdx); //when click on track we move the 1st thumb
+        updateValue();
     };
     const onDragStart = (e: React.MouseEvent | React.TouchEvent, thumbIdx: number) => {
         e.stopPropagation();
@@ -139,16 +150,15 @@ export default function Slider({
         //? We call onChange on after the dragging is finished for better performance
         if (draggingIdx === null) return;
         setDraggingIdx(null);
-        if (!multiple) onChange?.(values.current[0]);
-        else onChange?.(values.current);
-    }, [multiple, draggingIdx, onChange]);
+        updateValue();
+    }, [draggingIdx, updateValue]);
     useEffect(() => {
-        const newValues = (!multiple ? [value] : value).map((val, i) => {
+        values.current = !multiple ? [value] : [...value];
+        //if we want to sort here we should make a copy(not use .sort and instead use .toSorted or use spread operator)
+        values.current.forEach((val, i) => {
             thumbMoveHandler(val, i);
-            return val;
         });
-        values.current = newValues;
-    }, [value, multiple, min, max, thumbMoveHandler]);
+    }, [value, multiple, thumbMoveHandler]);
     useEffect(() => {
         if (draggingIdx !== null) {
             window.addEventListener('mousemove', onDragMove);
