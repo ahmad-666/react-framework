@@ -34,11 +34,11 @@ export default function Draggable({
     const startPos = useRef(0);
     const endPos = useRef(0);
 
-    const startHandler = (e: React.MouseEvent | React.TouchEvent) => {
+    const startHandler = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         setIsDragging(true);
         const { clientX } = 'touches' in e ? e.touches[0] : e;
         startPos.current = clientX - containerBounds.current.left;
-    };
+    }, []);
     const moveHandler = useCallback(
         (e: MouseEvent | TouchEvent) => {
             if (!isDragging) return;
@@ -49,6 +49,7 @@ export default function Draggable({
         [isDragging, speed]
     );
     const endHandler = useCallback(() => {
+        if (!isDragging) return;
         setIsDragging(false);
         const styles = getComputedStyle(wrapper.current);
         const matrix = new DOMMatrixReadOnly(styles.transform);
@@ -68,7 +69,7 @@ export default function Draggable({
         setTimeout(() => {
             wrapper.current.style.transition = '';
         }, transitionDuration);
-    }, [free, transitionDuration]);
+    }, [isDragging, free, transitionDuration]);
     useEffect(() => {
         const ro = new ResizeObserver(() => {
             const containerElm = container.current;

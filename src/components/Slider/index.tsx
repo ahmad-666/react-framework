@@ -1,85 +1,216 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback, type ReactNode, type CSSProperties } from 'react';
+import useColor from '@/hooks/useColor';
+
+type Single = {
+    multiple?: false;
+    value: number;
+    onChange?: (value: number) => void;
+};
+type Multiple = {
+    multiple: true;
+    value: number[];
+    onChange?: (value: number[]) => void;
+};
+type Props = (Single | Multiple) & {
+    min?: number;
+    max?: number;
+    step?: number;
+    /** show ticks on track for each step */
+    ticks?: boolean;
+    /** min distance between thumbs ... only useful for multiple:true */
+    distance?: number;
+    /** show tooltip for each thumb or not */
+    tooltip?: boolean;
+    /** track height */
+    trackSize?: number;
+    /** thumb size */
+    thumbSize?: number;
+    /** color of non active part of track */
+    trackColor?: string;
+    /** color of active part of track */
+    activeTrackColor?: string;
+    /** color of thumb */
+    thumbColor?: string;
+    thumbRenderer?: ({ isDragging, value }: { isDragging: boolean; value: number }) => ReactNode;
+    tooltipRenderer?: (value: number) => ReactNode;
+    trackClassName?: string;
+    activeTrackClassName?: string;
+    thumbClassName?: string;
+    tooltipClassName?: string;
+    className?: string;
+};
 
 export default function Slider({
+    multiple,
+    value,
+    onChange,
     min = 0,
     max = 100,
     step = 1,
-    values = [20, 80], // [oneThumb] or [leftThumb, rightThumb]
-    onChange
-}) {
-    const trackRef = useRef(null);
-    const [thumbs, setThumbs] = useState(values);
-    const [dragging, setDragging] = useState(null); // 0 or 1
-
-    useEffect(() => {
-        setThumbs(values);
-    }, [values]);
-
-    const percent = (val) => ((val - min) / (max - min)) * 100;
-
-    const getValueFromPosition = (clientX) => {
-        const rect = trackRef.current.getBoundingClientRect();
-        const percent = (clientX - rect.left) / rect.width;
-        const rawValue = min + percent * (max - min);
-        return Math.min(max, Math.max(min, Math.round(rawValue / step) * step));
-    };
-
-    const handleMouseMove = (e) => {
-        if (dragging === null) return;
-        const newValue = getValueFromPosition(e.clientX);
-        setThumbs((prev) => {
-            const updated = [...prev];
-            updated[dragging] = newValue;
-
-            if (updated.length === 2) {
-                if (dragging === 0 && updated[0] > updated[1]) updated[0] = updated[1];
-                if (dragging === 1 && updated[1] < updated[0]) updated[1] = updated[0];
+    ticks = false,
+    distance,
+    tooltip = true,
+    trackSize = 10,
+    thumbSize = 20,
+    trackColor = 'slate-300',
+    activeTrackColor = 'blue-500',
+    thumbColor = 'blue-600',
+    thumbRenderer,
+    tooltipRenderer,
+    trackClassName = '',
+    activeTrackClassName = '',
+    thumbClassName = '',
+    tooltipClassName = '',
+    className = ''
+}: Props) {
+    const trackRef = useRef<HTMLDivElement>(null!); //hold DOM node of container element
+    const activeTrackRef = useRef<HTMLDivElement>(null!); //hold DOM node of active track element
+    const thumbsRefs = useRef<HTMLDivElement[]>([]); //hold DOM nodes of thumbs elements
+    const values = useRef<number[]>(!multiple ? [value] : value); //hold final values of thumbs for updating parent(contains literal slider values not pixels or percentages) ... we use 'ref' for better performance and manually update DOM node styles
+    const [draggingIdx, setDraggingIdx] = useState<null | number>(null);
+    const trackParsedColor = useColor(trackColor);
+    const activeTrackParsedColor = useColor(activeTrackColor);
+    const thumbParsedColor = useColor(thumbColor);
+    const valueToPercent = useCallback(
+        (value: number) => {
+            return ((value - min) / (max - min)) * 100;
+        },
+        [min, max]
+    );
+    const percentToValue = useCallback(
+        (percent: number) => {
+            return min + (max - min) * percent;
+        },
+        [min, max]
+    );
+    const thumbMoveHandler = useCallback(
+        (newValue: number, thumbIdx: number) => {
+            // 'newValue' is the value of the thumb that is being dragged ...it is not pixels or percentage
+            // 'thumbIdx' is the index of the thumb that is being dragged
+            // inside this method we update 'values.current' refs and update DOM nodes(activeTrack,thumbs) styles
+            const activeTrack = activeTrackRef.current;
+            const draggingThumb = thumbsRefs.current[thumbIdx];
+            const snapToStep = Math.max(min, Math.min(Math.round(newValue / step) * step, max));
+            values.current[thumbIdx] = snapToStep;
+            const start = values.current[0];
+            const end = values.current[1];
+            if (!multiple) {
+                activeTrack.style.width = `${valueToPercent(start)}%`;
+                activeTrack.style.left = `${0}%`;
+            } else {
+                activeTrack.style.width = `${valueToPercent(end) - valueToPercent(start)}%`;
+                activeTrack.style.left = `${valueToPercent(start)}%`;
             }
-
-            onChange?.(updated);
-            return updated;
-        });
+            draggingThumb.style.left = `${valueToPercent(snapToStep)}%`;
+        },
+        [multiple, min, max, step, valueToPercent]
+    );
+    const onTrackClick = (e: React.MouseEvent) => {
+        if (draggingIdx !== null) return;
+        const { clientX } = e;
+        const track = trackRef.current;
+        const px = clientX - track.getBoundingClientRect().left;
+        const percent = px / track.offsetWidth;
+        const newValue = percentToValue(percent);
+        thumbMoveHandler(newValue, 0); //when click on track we move the 1st thumb
+        if (!multiple) onChange?.(values.current[0]);
+        else onChange?.(values.current);
     };
-
-    const handleMouseUp = () => setDragging(null);
-
+    const onDragStart = (e: React.MouseEvent | React.TouchEvent, thumbIdx: number) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setDraggingIdx(thumbIdx);
+    };
+    const onDragMove = useCallback(
+        (e: MouseEvent | TouchEvent) => {
+            if (draggingIdx === null) return;
+            const track = trackRef.current;
+            const { clientX } = 'touches' in e ? e.touches[0] : e;
+            const px = clientX - track.getBoundingClientRect().left;
+            const percent = px / track.offsetWidth;
+            const newValue = percentToValue(percent);
+            thumbMoveHandler(newValue, draggingIdx);
+        },
+        [draggingIdx, percentToValue, thumbMoveHandler]
+    );
+    const onDragEnd = useCallback(() => {
+        //? We call onChange on after the dragging is finished for better performance
+        if (draggingIdx === null) return;
+        setDraggingIdx(null);
+        if (!multiple) onChange?.(values.current[0]);
+        else onChange?.(values.current);
+    }, [multiple, draggingIdx, onChange]);
     useEffect(() => {
-        if (dragging !== null) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-        } else {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+        const newValues = (!multiple ? [value] : value).map((val, i) => {
+            thumbMoveHandler(val, i);
+            return val;
+        });
+        values.current = newValues;
+    }, [value, multiple, min, max, thumbMoveHandler]);
+    useEffect(() => {
+        if (draggingIdx !== null) {
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('touchmove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchend', onDragEnd);
         }
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousemove', onDragMove);
+            window.removeEventListener('touchmove', onDragMove);
+            window.removeEventListener('mouseup', onDragEnd);
+            window.removeEventListener('touchend', onDragEnd);
         };
-    }, [dragging]);
+    }, [draggingIdx, onDragMove, onDragEnd]);
 
     return (
-        <div className='w-full px-4 py-6'>
-            <div ref={trackRef} className='relative h-2 rounded-full bg-gray-300'>
-                {/* Range Highlight */}
+        <div
+            className={`${className}`}
+            style={
+                {
+                    '--track-size': `${trackSize}px`,
+                    '--thumb-size': `${thumbSize}px`,
+                    '--track-color': trackParsedColor,
+                    '--active-track-color': activeTrackParsedColor,
+                    '--thumb-color': thumbParsedColor
+                } as CSSProperties
+            }
+        >
+            <div
+                ref={trackRef}
+                onClick={onTrackClick}
+                className={`track relative w-full cursor-pointer rounded-full select-none ${trackClassName}`}
+                style={{ height: `${trackSize}px`, backgroundColor: trackParsedColor }}
+            >
                 <div
-                    className='absolute h-full rounded-full bg-blue-500'
+                    ref={activeTrackRef}
+                    className={`active-track absolute top-0 h-full rounded-full ${draggingIdx !== null ? 'transition-none' : 'transition-all duration-150'} ${activeTrackClassName}`}
                     style={{
-                        left: `${percent(thumbs.length === 2 ? thumbs[0] : min)}%`,
-                        width: `${thumbs.length === 2 ? percent(thumbs[1]) - percent(thumbs[0]) : percent(thumbs[0])}%`
+                        backgroundColor: activeTrackParsedColor
                     }}
                 />
-                {/* Thumbs */}
-                {thumbs.map((val, i) => (
-                    <div
-                        key={i}
-                        className='absolute top-1/2 z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 transform cursor-pointer rounded-full border-2 border-blue-500 bg-white shadow-md'
-                        style={{ left: `${percent(val)}%` }}
-                        onMouseDown={() => setDragging(i)}
-                    />
-                ))}
+                {values.current.map((_, i) => {
+                    const isDragging = i === draggingIdx;
+                    return (
+                        <div
+                            key={i}
+                            ref={(node) => {
+                                if (node !== null) thumbsRefs.current[i] = node;
+                            }}
+                            onMouseDown={(e) => onDragStart(e, i)}
+                            onTouchStart={(e) => onDragStart(e, i)}
+                            className={`thumb rounded-circle absolute top-1/2 -translate-x-1/2 -translate-y-1/2 bg-(--thumb-color) shadow-md hover:bg-[color-mix(in_srgb,var(--thumb-color),black_20%)] ${isDragging ? 'z-2 transition-none' : 'transition-all duration-150'} ${thumbClassName}`}
+                            style={{
+                                width: `${thumbSize}px`,
+                                height: `${thumbSize}px`
+                            }}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
 }
+
+//? We should always pass initial value for 'value' prop because value must always be number|number[]

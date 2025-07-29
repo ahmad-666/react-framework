@@ -1,24 +1,16 @@
-import React from 'react';
+import { useState } from 'react';
 import Slider from '.';
 
 export default function SliderExample() {
+    const [val1, setVal1] = useState(90);
+    const [val2, setVal2] = useState([30, 70]);
+
     return (
         <div>
-            <Slider
-                min={0}
-                max={100}
-                step={1}
-                values={[25]} // Single thumb
-                onChange={(v) => console.log('Single:', v)}
-            />
-
-            <Slider
-                min={0}
-                max={100}
-                step={1}
-                values={[30, 70]} // Double thumbs
-                onChange={(v) => console.log('Double:', v)}
-            />
+            {val1}
+            <Slider value={val1} onChange={(v) => setVal1(v)} min={50} max={100} step={10} />
+            {val2}
+            <Slider multiple value={val2} onChange={(v) => setVal2(v)} min={0} max={100} step={10} />
         </div>
     );
 }
