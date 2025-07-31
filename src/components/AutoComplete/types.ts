@@ -52,7 +52,7 @@ export type ClassNames = {
     /** add css className to value */
     value?: string;
     /** add css className to message */
-    message?: string;
+    helperText?: string;
 };
 export type BaseAutoCompleteProps<Opt extends Option> = {
     /** 'select' | 'autocomplete' | 'combobox' */
@@ -122,7 +122,7 @@ export type BaseAutoCompleteProps<Opt extends Option> = {
     /** set error state */
     error?: boolean;
     /** error or hint message */
-    message?: string;
+    helperText?: string;
     /** control search text */
     search?: string;
     /** get latest search value */

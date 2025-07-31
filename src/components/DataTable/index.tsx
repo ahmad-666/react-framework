@@ -503,7 +503,7 @@ const DataTable = <Row extends BaseRow>({
                                                                 className={`flex items-start justify-between gap-2 ${classNames.bodyCell || ''} ${colClassNames.bodyCell || ''}`}
                                                             >
                                                                 <div
-                                                                    className={`text-label-lg text-neutral-dark4 flex-shrink-0 text-start font-semibold ${cellSizeClassNames} ${classNames.headerCellContent || ''} ${colClassNames.headerCellContent || ''}`}
+                                                                    className={`text-label-lg text-neutral-dark4 shrink-0 text-start font-semibold ${cellSizeClassNames} ${classNames.headerCellContent || ''} ${colClassNames.headerCellContent || ''}`}
                                                                 >
                                                                     {headerRender ? (
                                                                         headerRender({ column: col })
@@ -512,7 +512,7 @@ const DataTable = <Row extends BaseRow>({
                                                                     )}
                                                                 </div>
                                                                 <div
-                                                                    className={`text-body-md text-neutral flex-grow text-end ${cellSizeClassNames} ${classNames.bodyCellContent || ''} ${colClassNames.bodyCellContent || ''}`}
+                                                                    className={`text-body-md text-neutral grow text-end ${cellSizeClassNames} ${classNames.bodyCellContent || ''} ${colClassNames.bodyCellContent || ''}`}
                                                                 >
                                                                     {cellRender ? (
                                                                         cellRender({ column: col, row })

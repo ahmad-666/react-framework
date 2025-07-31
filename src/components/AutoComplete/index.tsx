@@ -61,7 +61,7 @@ const AutoComplete = <Opt extends Option>({
     appendOuterRender,
     hideMessage = false,
     error,
-    message,
+    helperText,
     search = '',
     onSearchChange,
     menu = false,
@@ -81,7 +81,7 @@ const AutoComplete = <Opt extends Option>({
         noDataText: '',
         valueContainer: '',
         value: '',
-        message: ''
+        helperText: ''
     },
     className = '',
     style
@@ -556,8 +556,8 @@ const AutoComplete = <Opt extends Option>({
                 </div>
             </div>
             {!hideMessage && (
-                <FormMessage error={error} className={`mt-3 ${classNames.message}`}>
-                    {message}
+                <FormMessage error={error} className={`mt-3 ${classNames.helperText}`}>
+                    {helperText}
                 </FormMessage>
             )}
         </div>

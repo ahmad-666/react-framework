@@ -3,6 +3,7 @@
 import {
     useId,
     useState,
+    type ReactNode,
     type RefObject,
     type ChangeEvent,
     type FormEvent,
@@ -39,14 +40,20 @@ type Props = {
     clearable?: boolean;
     readonly?: boolean;
     disabled?: boolean;
+    autoComplete?: boolean;
     hideMessage?: boolean;
     error?: boolean;
-    message?: string;
+    helperText?: string;
     prependOuterIcon?: string;
     prependInnerIcon?: string;
     appendInnerIcon?: string;
     appendOuterIcon?: string;
+    prependOuterRender?: ({ isFocus, isError }: { isFocus: boolean; isError: boolean }) => ReactNode;
+    prependInnerRender?: ({ isFocus, isError }: { isFocus: boolean; isError: boolean }) => ReactNode;
+    appendInnerRender?: ({ isFocus, isError }: { isFocus: boolean; isError: boolean }) => ReactNode;
+    appendOuterRender?: ({ isFocus, isError }: { isFocus: boolean; isError: boolean }) => ReactNode;
     inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement>;
+    containerClassName?: string;
     inputClassName?: string;
     className?: string;
 };
@@ -72,14 +79,20 @@ export default function TextField({
     clearable = false,
     readonly = false,
     disabled = false,
+    autoComplete = true,
     hideMessage = false,
     error = false,
-    message,
+    helperText,
     prependOuterIcon,
     prependInnerIcon,
     appendInnerIcon,
     appendOuterIcon,
+    prependOuterRender,
+    prependInnerRender,
+    appendInnerRender,
+    appendOuterRender,
     inputRef,
+    containerClassName = '',
     inputClassName = '',
     className = ''
 }: Props) {
@@ -137,16 +150,18 @@ export default function TextField({
                 </FormLabel>
             )}
             <div className='flex items-center gap-2'>
+                {prependOuterRender?.({ isFocus, isError: error })}
                 {!!prependOuterIcon && (
                     <Icon icon={prependOuterIcon} size='sm' color={accentColor} className='shrink-0' />
                 )}
                 <div
-                    className={`flex grow items-center gap-2 overflow-hidden rounded-md p-2 ${variant === 'fill' ? 'bg-neutral-light4' : 'bg-transparent'} ${variant === 'outline' || isFocus || error ? 'border' : 'border-0'}`}
+                    className={`flex grow items-center gap-2 overflow-hidden rounded-md p-2 ${variant === 'fill' ? 'bg-neutral-light4' : 'bg-transparent'} ${variant === 'outline' || isFocus || error ? 'border' : 'border-0'} ${containerClassName}`}
                     style={{
                         height: as === 'textfield' ? `${height}px` : 'auto',
                         borderColor: parsedAccentColor //for all variants we use this
                     }}
                 >
+                    {prependInnerRender?.({ isFocus, isError: error })}
                     {!!prependInnerIcon && (
                         <Icon icon={prependInnerIcon} size='sm' color={accentColor} className='shrink-0' />
                     )}
@@ -159,6 +174,7 @@ export default function TextField({
                             value={value}
                             readOnly={readonly}
                             disabled={disabled}
+                            autoComplete={autoComplete ? 'on' : 'off'}
                             placeholder={placeholder}
                             onChange={changeHandler}
                             onInput={inputHandler}
@@ -172,6 +188,7 @@ export default function TextField({
                             }}
                         />
                     </div>
+                    {appendInnerRender?.({ isFocus, isError: error })}
                     {!!appendInnerIcon && (
                         <Icon icon={appendInnerIcon} size='sm' color={accentColor} className='shrink-0' />
                     )}
@@ -181,13 +198,14 @@ export default function TextField({
                         </button>
                     )}
                 </div>
+                {appendOuterRender?.({ isFocus, isError: error })}
                 {!!appendOuterIcon && (
                     <Icon icon={appendOuterIcon} size='sm' color={accentColor} className='shrink-0' />
                 )}
             </div>
             {!hideMessage && (
                 <FormMessage error={error} className='mt-2'>
-                    {message}
+                    {helperText}
                 </FormMessage>
             )}
         </div>

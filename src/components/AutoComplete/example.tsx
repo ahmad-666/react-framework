@@ -86,7 +86,7 @@ const AutoCompleteExample = () => {
                                 menu={menu}
                                 onMenuChange={setMenu}
                                 error={!!fieldState.error}
-                                message={fieldState.error?.message}
+                                helperText={fieldState.error?.message}
                             />
                         )}
                     />

@@ -29,7 +29,7 @@ const OTPExample = () => {
                             readOnly={false}
                             disabled={false}
                             error={!!fieldState.error}
-                            message={fieldState.error?.message}
+                            helperText={fieldState.error?.message}
                         />
                     )}
                 />

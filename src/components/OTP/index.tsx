@@ -22,7 +22,7 @@ type Props = {
     readOnly?: boolean;
     disabled?: boolean;
     error?: boolean;
-    message?: string;
+    helperText?: string;
     hideMessage?: boolean;
     inputClassName?: string;
     className?: string;
@@ -42,7 +42,7 @@ export default function OTP({
     readOnly = false,
     disabled = false,
     error = false,
-    message,
+    helperText,
     hideMessage = false,
     inputClassName = '',
     className = ''
@@ -172,7 +172,7 @@ export default function OTP({
             </ul>
             {!hideMessage && (
                 <FormMessage error={error} className='mt-2'>
-                    {message}
+                    {helperText}
                 </FormMessage>
             )}
         </div>

@@ -41,7 +41,7 @@ export default function TextfieldExample() {
                                 minRows={2}
                                 maxRows={5}
                                 error={!!fieldState.error}
-                                message={fieldState.error?.message}
+                                helperText={fieldState.error?.message}
                             />
                         )}
                     />
