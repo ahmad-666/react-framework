@@ -10,7 +10,19 @@ export default function SliderExample() {
             {val1}
             <Slider value={val1} onChange={(v) => setVal1(v)} min={50} max={100} step={10} />
             {val2}
-            <Slider multiple value={val2} onChange={(v) => setVal2(v)} min={0} max={100} step={10} />
+            <Slider
+                multiple
+                value={val2}
+                onChange={(v) => setVal2(v)}
+                min={25}
+                max={175}
+                step={5}
+                // distance={10}
+                tooltip
+                ticks
+                // thumbRenderer={({value,isDragging}) => <div className='aspect-square w-10 bg-red-500' />}
+                // tooltipRenderer={({value}) => <div>{value}</div>}
+            />
         </div>
     );
 }
