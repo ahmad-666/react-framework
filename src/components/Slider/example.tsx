@@ -14,9 +14,9 @@ export default function SliderExample() {
                 multiple
                 value={val2}
                 onChange={(v) => setVal2(v)}
-                min={25}
-                max={175}
-                step={5}
+                min={0}
+                max={100}
+                step={1}
                 // distance={10}
                 tooltip
                 ticks
