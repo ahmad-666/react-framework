@@ -43,6 +43,8 @@ type Props = (Single | Multiple) & {
     className?: string;
 };
 
+const TRANSITION_DURATION = 150; //in milliseconds
+
 export default function Slider({
     multiple,
     value,
@@ -90,40 +92,39 @@ export default function Slider({
     );
     const updateValue = useCallback(() => {
         if (!multiple) onChange?.(values.current[0]);
-        else onChange?.(values.current.toSorted((a, b) => a - b));
+        else onChange?.(values.current.toSorted((a, b) => a - b)); //make sure start is always smaller than end
     }, [multiple, onChange]);
     const thumbMoveHandler = useCallback(
         (newValue: number, thumbIdx: number) => {
             // 'newValue' is the value of the thumb that is being dragged ...it is not pixels or percentage
             // 'thumbIdx' is the index of the thumb that is being dragged
             // inside this method we update 'values.current' refs and update DOM nodes(activeTrack,thumbs) styles
+            const isAllowedDistance =
+                !multiple ||
+                typeof distance !== 'number' ||
+                Math.abs(newValue - (thumbIdx === 0 ? values.current[1] : values.current[0])) >= distance;
+            if (!isAllowedDistance) return null; //if distance between 2 thumbs getting smaller than distance prop then do nothing
             const activeTrack = activeTrackRef.current;
-            const snapToStep = Math.max(min, Math.min(Math.round(newValue / step) * step, max));
-            let idx = thumbIdx;
+            const snapToStep = Math.max(min, Math.min(min + Math.round((newValue - min) / step) * step, max)); //force value to between [min,max] + only allow value to be in 'step' ranges
+            let thumbLeft;
+            let activeTrackLeft;
+            let activeTrackWidth;
+            values.current[thumbIdx] = snapToStep; //first we need to update values.current ref then destruct it
+            const [start, end] = values.current;
+            const shouldSwap = (thumbIdx === 0 && snapToStep > end) || (thumbIdx === 1 && snapToStep < start);
             if (!multiple) {
-                activeTrack.style.width = `${valueToPercent(snapToStep)}%`;
-                activeTrack.style.left = `${0}%`;
+                thumbLeft = valueToPercent(snapToStep);
+                activeTrackLeft = 0;
+                activeTrackWidth = valueToPercent(snapToStep);
             } else {
-                const [start, end] = values.current;
-                if (
-                    typeof distance === 'number' &&
-                    Math.abs((idx === 1 ? newValue : end) - (idx === 0 ? newValue : start)) <= distance
-                ) {
-                    return null;
-                }
-                if ((idx === 0 && snapToStep > end) || (idx === 1 && snapToStep < start)) {
-                    [values.current[0], values.current[1]] = [end, start];
-                    idx = idx === 0 ? 1 : 0;
-                    setDraggingIdx(idx);
-                }
-                activeTrack.style.width = `${valueToPercent(end) - valueToPercent(start)}%`;
-                activeTrack.style.left = `${valueToPercent(start)}%`;
+                thumbLeft = valueToPercent(snapToStep);
+                activeTrackLeft = valueToPercent(!shouldSwap ? start : end);
+                activeTrackWidth = Math.abs(valueToPercent(end) - valueToPercent(start));
             }
-            const draggingThumb = thumbsRefs.current[idx];
-            const tooltip = tooltipsRefs.current[idx];
-            draggingThumb.style.left = `${valueToPercent(snapToStep)}%`;
-            tooltip.textContent = `${snapToStep}`;
-            values.current[idx] = snapToStep;
+            tooltipsRefs.current[thumbIdx].textContent = `${snapToStep}`;
+            thumbsRefs.current[thumbIdx].style.left = `${thumbLeft.toFixed(2)}%`;
+            activeTrack.style.left = `${Math.round(activeTrackLeft).toFixed(2)}%`;
+            activeTrack.style.width = `${Math.round(activeTrackWidth).toFixed(2)}%`;
         },
         [multiple, min, max, step, distance, valueToPercent]
     );
@@ -195,7 +196,8 @@ export default function Slider({
                     '--track-color': trackParsedColor,
                     '--active-track-color': activeTrackParsedColor,
                     '--thumb-color': thumbParsedColor,
-                    '--thumb-color-alpha': alpha(thumbParsedColor, 0.2)
+                    '--thumb-color-alpha': alpha(thumbParsedColor, 0.2),
+                    '--transition-duration': `${TRANSITION_DURATION}ms`
                 } as CSSProperties
             }
         >
@@ -207,7 +209,7 @@ export default function Slider({
             >
                 <div
                     ref={activeTrackRef}
-                    className={`active-track absolute top-0 h-full rounded-full ${draggingIdx !== null ? 'transition-none' : 'transition-all duration-150'} ${activeTrackClassName}`}
+                    className={`active-track absolute top-0 h-full rounded-full ${draggingIdx !== null ? 'transition-none' : 'transition-all duration-(--transition-duration)'} ${activeTrackClassName}`}
                     style={{
                         backgroundColor: activeTrackParsedColor
                     }}
@@ -216,7 +218,7 @@ export default function Slider({
                     Array.from({ length: totalTicks }).map((_, i) => (
                         <span
                             key={i}
-                            className='absolute top-1/2 aspect-square h-2/5 -translate-y-1/2 rounded-full bg-slate-200'
+                            className='pointer-events-none absolute top-1/2 aspect-square h-2/5 -translate-y-1/2 rounded-full bg-slate-200'
                             style={{
                                 left: `${valueToPercent(min + (i + 1) * step)}%`
                             }}
@@ -232,28 +234,27 @@ export default function Slider({
                             }}
                             onMouseDown={(e) => onDragStart(e, i)}
                             onTouchStart={(e) => onDragStart(e, i)}
-                            className={`thumb absolute top-1/2 -translate-x-1/2 -translate-y-1/2 ${isDragging ? 'z-2 transition-none' : 'transition-all duration-150'} ${thumbClassName}`}
+                            className={`thumb absolute top-1/2 -translate-x-1/2 -translate-y-1/2 ${isDragging ? 'z-2' : ''} ${isDragging || values.current[0] >= values.current[1] ? 'transition-none' : 'transition-all duration-(--transition-duration)'} ${thumbClassName}`}
                         >
                             {thumbRenderer?.({ isDragging, value }) || (
                                 <div
-                                    className={`rounded-circle bg-(--thumb-color) transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--thumb-color),black_30%)] ${isDragging ? 'shadow-[0_0_0_8px_var(--thumb-color-alpha)]' : 'hover:shadow-[0_0_0_5px_var(--thumb-color-alpha)]'}`}
+                                    className={`rounded-circle bg-(--thumb-color) transition-all duration-(--transition-duration) hover:bg-[color-mix(in_srgb,var(--thumb-color),black_30%)] ${isDragging ? 'shadow-[0_0_0_8px_var(--thumb-color-alpha)]' : 'hover:shadow-[0_0_0_5px_var(--thumb-color-alpha)]'}`}
                                     style={{
                                         width: `${thumbSize}px`,
                                         height: `${thumbSize}px`
                                     }}
                                 />
                             )}
-                            {tooltip &&
-                                (tooltipRenderer?.({ value }) || (
-                                    <div
-                                        ref={(node) => {
-                                            if (node) tooltipsRefs.current[i] = node;
-                                        }}
-                                        className={`text-label-md absolute bottom-full left-1/2 -translate-x-1/2 -translate-y-1 rounded-sm bg-slate-800 p-1 text-white ${tooltipClassName}`}
-                                    >
-                                        {value}
-                                    </div>
-                                ))}
+                            {tooltipRenderer?.({ value }) || (
+                                <div
+                                    ref={(node) => {
+                                        if (node) tooltipsRefs.current[i] = node;
+                                    }}
+                                    className={`text-label-md pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 -translate-y-1 rounded-sm bg-slate-800 p-1 text-white ${!tooltip ? 'hidden' : ''} ${tooltipClassName}`}
+                                >
+                                    {value}
+                                </div>
+                            )}
                         </div>
                     );
                 })}

@@ -3,12 +3,12 @@ import Slider from '.';
 
 export default function SliderExample() {
     const [val1, setVal1] = useState(90);
-    const [val2, setVal2] = useState([30, 70]);
+    const [val2, setVal2] = useState([20, 60]);
 
     return (
         <div>
             {val1}
-            <Slider value={val1} onChange={(v) => setVal1(v)} min={50} max={100} step={10} />
+            <Slider value={val1} onChange={(v) => setVal1(v)} min={0} max={100} step={10} />
             {val2}
             <Slider
                 multiple
@@ -17,7 +17,7 @@ export default function SliderExample() {
                 min={0}
                 max={100}
                 step={1}
-                // distance={10}
+                distance={5}
                 tooltip
                 ticks
                 // thumbRenderer={({value,isDragging}) => <div className='aspect-square w-10 bg-red-500' />}
