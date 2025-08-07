@@ -2,18 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Container from '@/components/Container';
-import SliderExample from '@/components/Slider/example';
 
 const TestPage = () => {
-    useEffect(() => {});
-
-    return (
-        <div>
-            <Container className='m-20 !overflow-visible'>
-                <SliderExample />
-            </Container>
-        </div>
-    );
+    return <Container className='my-30'></Container>;
 };
 
 export default TestPage;
