@@ -9,7 +9,7 @@ type Props<T> = {
     /** for add more buffer */
     duplicationCount?: number;
     items: T[];
-    itemRenderer: (item: T) => ReactNode;
+    children: (item: T) => ReactNode;
     width?: number | string;
     minWidth?: number | string;
     maxWidth?: number | string;
@@ -24,7 +24,7 @@ export default function Marquee<T>({
     direction = 'vertical',
     duplicationCount = 3,
     items = [],
-    itemRenderer,
+    children,
     width = '100%',
     minWidth = 0,
     maxWidth = '100%',
@@ -88,7 +88,7 @@ export default function Marquee<T>({
             }}
         >
             {duplicatedItems.map((item, i) => (
-                <Fragment key={i}>{itemRenderer(item)}</Fragment>
+                <Fragment key={i}>{children(item)}</Fragment>
             ))}
         </div>
     );
