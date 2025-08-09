@@ -1,0 +1,12 @@
+.container {
+    & .ripple {
+        animation: ripple var(--ripple-duration) linear forwards;
+    }
+}
+
+@keyframes ripple {
+    to {
+        opacity: 0;
+        transform: scale(4);
+    }
+}
