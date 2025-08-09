@@ -2,15 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Container from '@/components/Container';
-import ItemsGroupExample from '@/components/ItemsGroup/example';
-
-const a:string[] = []
-const b:typeof a[0] = ''
+import TabsExample from '@/components/Tabs/example';
 
 const TestPage = () => {
     return (
         <Container className='my-30'>
-            <ItemsGroupExample />
+            <TabsExample />
         </Container>
     );
 };

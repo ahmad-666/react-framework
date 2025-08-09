@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback, type ReactNode } from 'react';
 
-type Props = {
+export type Props = {
     /** control drag speed
      *
      *  use lower that 1 values for applying threshold on start/end
@@ -22,7 +22,7 @@ export default function Draggable({
     transitionDuration = 150,
     free = false,
     children,
-    wrapperClassName,
+    wrapperClassName = '',
     className = ''
 }: Props) {
     const [isDragging, setIsDragging] = useState(false);
