@@ -1,0 +1,12 @@
+.linear-loader {
+    transform-origin: left center;
+    animation: linear-loader 4s ease-in-out infinite;
+}
+@keyframes linear-loader {
+    from {
+        transform: translateX(-10%) scaleX(0);
+    }
+    to {
+        transform: translateX(110%) scaleX(1);
+    }
+}
