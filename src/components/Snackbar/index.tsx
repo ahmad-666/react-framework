@@ -42,7 +42,7 @@ export default function Snackbar({
         if (positionY === 'top') styles.top = '10px';
         else if (positionY === 'center') {
             styles.top = '50%';
-            styles.transform = `${styles.transform} translateY(-50%)`;
+            styles.transform = `${styles.transform || ''} translateY(-50%)`;
         } else if (positionY === 'bottom') styles.bottom = '10px';
         return styles;
     };

@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Container from '@/components/Container';
-import SkeletonExample from '@/components/Skeleton/example';
+import TooltipExample from '@/components/Tooltip/example';
 
 const TestPage = () => {
     return (
-        <Container className='my-30'>
-            <SkeletonExample />
+        <Container className='my-30 overflow-visible'>
+            <TooltipExample />
         </Container>
     );
 };
