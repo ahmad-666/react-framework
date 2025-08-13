@@ -53,6 +53,7 @@ export default function Switch({
     const inputId = id || generatedId;
     const parsedTrackColor = useColor(trackColor);
     const parsedHandleColor = useColor(handleColor);
+    const offset = handleSize > trackHeight ? 0 : 3; //if handler>trackHeight then we have 'outset' switch else we have 'inset' switch
 
     return (
         <div className={`${className}`}>
@@ -78,10 +79,7 @@ export default function Switch({
                             width: `${handleSize}px`,
                             height: `${handleSize}px`,
                             backgroundColor: parsedHandleColor,
-                            ...(handleSize > trackHeight && { left: value ? `calc(100% - ${handleSize}px)` : '0px' }), //outline
-                            ...(handleSize <= trackHeight && {
-                                left: value ? `calc(100% - ${handleSize}px - 3px)` : '3px'
-                            }) //inline
+                            left: value ? `calc(100% - ${handleSize}px - ${offset}px)` : `${offset}px`
                         }}
                     >
                         {children}
@@ -90,6 +88,7 @@ export default function Switch({
                         id={inputId}
                         type='checkbox'
                         checked={value}
+                        readOnly
                         className='pointer-events-none absolute top-0 left-0 h-0 w-0 opacity-0'
                     />
                 </div>
