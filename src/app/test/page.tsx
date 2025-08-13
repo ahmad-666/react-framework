@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Container from '@/components/Container';
-import SwitchExample from '@/components/Switch/example';
+import RadioExample from '@/components/Radio/example';
 
 const TestPage = () => {
     return (
         <Container className='my-30 overflow-visible'>
-            <SwitchExample />
+            <RadioExample />
         </Container>
     );
 };
