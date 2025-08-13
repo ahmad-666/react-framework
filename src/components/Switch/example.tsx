@@ -24,13 +24,15 @@ export default function SwitchExample() {
                 />
             </div>
             <div className='mt-20'>
-                <p className='text-title-lg'>#2: Outline Switch with custom left/right labels</p>
+                <p className='text-title-lg'>#2: Outline Switch with custom left/right labels and coloring</p>
                 <Switch
                     value={value2}
                     onChange={(newVal) => setValue2(newVal)}
                     trackWidth={50}
                     trackHeight={20}
                     handleSize={26}
+                    trackColor={value2 ? 'sky-500' : 'slate-300'}
+                    handleColor={value2 ? 'sky-700' : 'white'}
                     leftLabel={
                         <span className={`text-label-md ${value2 ? 'text-neutral-light2' : 'text-neutral-dark4'}`}>
                             Left
