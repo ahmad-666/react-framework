@@ -22,6 +22,8 @@ type RadioProps = {
     color?: string;
     /** only useful for variant="icon" */
     icon?: ReactNode;
+    readOnly?: boolean;
+    disabled?: boolean;
     /** act as label for input[type="radio"] */
     children: ReactNode;
     className?: string;
@@ -37,6 +39,8 @@ const Radio = ({
     icon = <Icon icon='mdi:check' size='md' color='white' />,
     size = 'md',
     color = 'sky-600',
+    readOnly = false,
+    disabled = false,
     children,
     className = ''
 }: RadioProps) => {
@@ -63,7 +67,10 @@ const Radio = ({
     const radioSize = getSize();
 
     return (
-        <div className={`flex cursor-pointer items-center gap-2 ${className}`} onClick={() => onChange?.(!checked)}>
+        <div
+            className={`flex items-center gap-2 ${disabled ? 'opacity-50' : ''} ${readOnly || disabled ? 'pointer-events-none' : 'cursor-pointer'} ${className}`}
+            onClick={() => onChange?.(!checked)}
+        >
             <div
                 className='rounded-circle aspect-square shrink-0 transition-colors duration-300'
                 style={{
@@ -98,7 +105,9 @@ const Radio = ({
                 name={name}
                 value={value}
                 checked={checked}
-                readOnly
+                onChange={() => {}}
+                readOnly={readOnly}
+                disabled={disabled}
                 className='pointer-events-none absolute top-0 left-0 h-0 w-0 opacity-0'
             />
         </div>

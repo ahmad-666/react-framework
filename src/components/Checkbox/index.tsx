@@ -1,4 +1,4 @@
-import { useId, type ChangeEvent, type ReactNode } from 'react';
+import { useId, useRef, useEffect, type ChangeEvent, type ReactNode } from 'react';
 import Icon from '@/components/Icon';
 import FormMessage from '@/components/FormMessage';
 import useColor from '@/hooks/useColor';
@@ -9,11 +9,15 @@ type Props = {
     name?: string;
     /** boolean value for specifying if checkbox is checked or not */
     checked: boolean;
+    /** indeterminate state of checkbox ... totally unrelated to checked state */
+    indeterminate?: boolean;
     /** value of specific checkbox ... always use string even for multiple:true */
     value?: string;
     onChange?: (checked: boolean, value: string) => void;
     size?: Size;
     color?: string;
+    checkIcon?: ReactNode;
+    indeterminateIcon?: ReactNode;
     readOnly?: boolean;
     disabled?: boolean;
     hideMessage?: boolean;
@@ -28,10 +32,13 @@ export default function Checkbox({
     id,
     name,
     checked = false,
+    indeterminate = false,
     value,
     onChange,
     size = 'md',
     color = 'primary',
+    checkIcon,
+    indeterminateIcon,
     readOnly = false,
     disabled = false,
     hideMessage = false,
@@ -41,6 +48,7 @@ export default function Checkbox({
     contentClassName = '',
     className = ''
 }: Props) {
+    const checkboxRef = useRef<HTMLInputElement>(null!);
     const parsedColor = useColor(color);
     const randomId = useId().replace(/\W/g, '').toLowerCase();
     const inputId = id || randomId;
@@ -66,6 +74,12 @@ export default function Checkbox({
         const { checked, value } = e.target;
         onChange?.(checked, value || '');
     };
+    useEffect(() => {
+        const checkbox = checkboxRef.current;
+        if (checkbox) {
+            checkbox.indeterminate = indeterminate;
+        }
+    }, [indeterminate]);
 
     return (
         <div className={`inline-block ${className}`}>
@@ -78,6 +92,7 @@ export default function Checkbox({
                     name={name}
                     type='checkbox'
                     checked={checked}
+                    // we don't have any indeterminate attribute for input[type="checkbox"]
                     value={value}
                     onChange={onChangeHandler}
                     readOnly={readOnly}
@@ -94,7 +109,18 @@ export default function Checkbox({
                         borderColor: checked ? 'transparent' : '#aaa'
                     }}
                 >
-                    <Icon icon='mdi:check' size='md' color='inherit' />
+                    {checked && checkIcon ? (
+                        checkIcon
+                    ) : indeterminate && indeterminateIcon ? (
+                        indeterminateIcon
+                    ) : (
+                        <Icon
+                            icon={checked ? 'mdi:check' : indeterminate ? 'mdi:minus' : ''}
+                            size='md'
+                            color='white'
+                            className={`pointer-events-none transition-opacity duration-300 ${checked || indeterminate ? 'opacity-100' : 'opacity-0'}`}
+                        />
+                    )}
                 </span>
                 <span className='text-label-lg text-slate-700'>{children}</span>
             </label>
@@ -107,24 +133,4 @@ export default function Checkbox({
     );
 }
 
-//? Usage:
-//* #1: single boolean checkbox
-// const [val, setVal] = useState(false);
-// <Checkbox id='id' name='name' checked={val} onChange={(checked) => setVal(checked)}
-//     readOnly={false} disabled={false} size='sm' color='sky-600'
-// > label of checkbox </Checkbox>
-//* #2: multiple array checkbox
-// const [val, setVal] = useState<string[]>([]);
-// <div className='flex flex-col gap-5'>
-//     {['val1', 'val2', 'val3'].map((item) => (
-//         <Checkbox key={item} checked={val.includes(item)} value={item}
-//             onChange={(checked, value) => {
-//                 if (checked) setVal((old) => [...old, value as string]);
-//                 else setVal((old) => old.filter((o) => o !== value));
-//             }}
-//             color='purple-500' size='md' error message='This is a message'
-//         >
-//             <span className='text-body-lg font-bold text-orange-500'>{item}</span>
-//         </Checkbox>
-//     ))}
-// </div>
+

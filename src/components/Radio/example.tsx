@@ -17,9 +17,13 @@ export default function RadioExample() {
                     icon={<Icon icon='mdi:check' size='sm' color='white' />}
                     className='mt-4'
                 >
-                    <RadioGroup.Radio value='a'>#A Radio</RadioGroup.Radio>
-                    <RadioGroup.Radio value='b'>#B Radio</RadioGroup.Radio>
-                    <RadioGroup.Radio value='c'>#C Radio</RadioGroup.Radio>
+                    <RadioGroup.Radio value='a' disabled>
+                        #Disabled Radio
+                    </RadioGroup.Radio>
+                    <RadioGroup.Radio value='b' readOnly>
+                        #Readonly Radio
+                    </RadioGroup.Radio>
+                    <RadioGroup.Radio value='c'>#Selectable Radio</RadioGroup.Radio>
                 </RadioGroup>
             </div>
             <div className='mt-20'>
