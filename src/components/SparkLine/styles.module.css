@@ -1,0 +1,11 @@
+.auto-draw {
+    animation: auto-draw 2s ease-in-out forwards;
+}
+@keyframes auto-draw {
+    from {
+        /* stroke-dashoffset: 100%; */
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
