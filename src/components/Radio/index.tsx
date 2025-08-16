@@ -3,18 +3,25 @@
 import { useId, Children, cloneElement, isValidElement, type ReactNode } from 'react';
 import FormLabel from '@/components/FormLabel';
 import FormMessage from '@/components/FormMessage';
+import Icon from '@/components/Icon';
 import useColor from '@/hooks/useColor';
 
+//* Global Types -----------------------------------
 type Size = 'sm' | 'md' | 'lg' | number;
-
+type Variant = 'no-icon' | 'icon';
+//* Radio Item component -----------------------------------
 type RadioProps = {
     id?: string;
     name?: string;
     checked?: boolean;
     value: number | string;
     onChange?: (newChecked: boolean) => void;
+    /** variant="icon" will show icon on checked state but variant="no-icon" will show smaller circle on checked state */
+    variant?: Variant;
     size?: Size;
     color?: string;
+    /** only useful for variant="icon" */
+    icon?: ReactNode;
     /** act as label for input[type="radio"] */
     children: ReactNode;
     className?: string;
@@ -26,6 +33,8 @@ const Radio = ({
     checked = false,
     value,
     onChange,
+    variant = 'no-icon',
+    icon = <Icon icon='mdi:check' size='md' color='white' />,
     size = 'md',
     color = 'sky-600',
     children,
@@ -56,19 +65,29 @@ const Radio = ({
     return (
         <div className={`flex cursor-pointer items-center gap-2 ${className}`} onClick={() => onChange?.(!checked)}>
             <div
-                className='rounded-circle relative aspect-square shrink-0 border transition-colors duration-300'
+                className='rounded-circle aspect-square shrink-0 transition-colors duration-300'
                 style={{
                     width: `${radioSize}px`,
-                    borderColor: checked ? parsedColor : '#aaa'
+                    borderWidth: variant === 'no-icon' || !checked ? '1px' : '0px',
+                    borderStyle: 'solid',
+                    borderColor: checked ? parsedColor : '#aaa',
+                    backgroundColor: variant === 'icon' && checked ? parsedColor : 'transparent'
                 }}
             >
                 <div
-                    className={`rounded-circle pointer-events-none absolute top-1/2 left-1/2 aspect-square origin-center -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${checked ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
-                    style={{
-                        width: `${radioSize * 0.55}px`,
-                        backgroundColor: parsedColor
-                    }}
-                />
+                    className={`pointer-events-none flex h-full w-full items-center justify-center transition-all duration-300 ${checked ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                >
+                    {variant === 'no-icon' && (
+                        <div
+                            className='rounded-circle aspect-square'
+                            style={{
+                                width: `${radioSize * 0.55}px`,
+                                backgroundColor: parsedColor
+                            }}
+                        />
+                    )}
+                    {variant === 'icon' && icon}
+                </div>
             </div>
             <label htmlFor={inputId} className='text-body-md text-neutral-dark2 cursor-pointer'>
                 {children}
@@ -85,8 +104,11 @@ const Radio = ({
         </div>
     );
 };
-
-type RadioGroupProps = Pick<RadioProps, 'id' | 'name' | 'size' | 'color' | 'children' | 'className'> & {
+//* RadioGroup component -----------------------------------
+type RadioGroupProps = Pick<
+    RadioProps,
+    'id' | 'name' | 'variant' | 'size' | 'color' | 'icon' | 'children' | 'className'
+> & {
     value: null | number | string;
     onChange?: (newValue: null | number | string) => void;
     label?: string;
@@ -99,8 +121,10 @@ const RadioGroup = ({
     name,
     value,
     onChange,
+    variant = 'no-icon',
     size = 'md',
     color = 'sky-600',
+    icon,
     label,
     error = false,
     helperText,
@@ -126,8 +150,10 @@ const RadioGroup = ({
                             if (checked) onChange?.(radioValue);
                             //if not checked don't do anything
                         },
+                        variant,
                         size,
                         color,
+                        icon,
                         name
                     });
                 })}
@@ -136,7 +162,7 @@ const RadioGroup = ({
         </div>
     );
 };
-
+//* Exports -----------------------------------
 RadioGroup.Radio = Radio;
 export default RadioGroup;
 

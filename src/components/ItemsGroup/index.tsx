@@ -1,5 +1,6 @@
 import { Children, cloneElement, isValidElement, type ReactNode } from 'react';
 
+//* Item Component -----------------------------------
 type ItemProps = {
     value: number | string;
     onChange?: (newValue: number | string) => void;
@@ -18,7 +19,7 @@ const Item = ({ value, onChange, isActive = false, children, activeClassName = '
         </div>
     );
 };
-
+//* Item Group Component -----------------------------------
 type ItemsGroupSingle = {
     multiple?: false;
     value: null | number | string;
@@ -52,6 +53,6 @@ const ItemsGroup = ({ multiple, value, onChange, children, activeClassName = '',
         </div>
     );
 };
-
+//* Exports -----------------------------------
 ItemsGroup.Item = Item;
 export default ItemsGroup;

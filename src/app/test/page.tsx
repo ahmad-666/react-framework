@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Container from '@/components/Container';
-import SparkLineExample from '@/components/SparkLine/example';
+import RadioExample from '@/components/Radio/example';
 
 const TestPage = () => {
     return (
         <Container className='my-30 overflow-visible'>
-            <SparkLineExample />
+            <RadioExample />
         </Container>
     );
 };

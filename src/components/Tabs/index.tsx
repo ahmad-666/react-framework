@@ -5,6 +5,7 @@ import Button from '@/components/Button';
 import Icon from '@/components/Icon';
 import useColor from '@/hooks/useColor';
 
+//* Tabs Item Component -----------------------------------
 type TabProps<T> = {
     value: T;
     onChange?: (newValue: T) => void;
@@ -31,7 +32,7 @@ const Tab = <T,>({
         </div>
     );
 };
-
+//* Tabs Component -----------------------------------
 type TabsProps<T> = {
     value: T;
     onChange: (newValue: T) => void;
@@ -150,7 +151,7 @@ const Tabs = <T,>({
         </div>
     );
 };
-
+//* Exports -----------------------------------
 Tabs.Tab = Tab;
 export default Tabs;
 

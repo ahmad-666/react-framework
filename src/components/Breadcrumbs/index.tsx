@@ -1,6 +1,7 @@
 import { Children, cloneElement, isValidElement, type ReactNode } from 'react';
 import Icon from '@/components/Icon';
 
+//* Breadcrumb Item Component -----------------------------------
 type ItemProps = {
     children: ReactNode;
     className?: string;
@@ -8,7 +9,7 @@ type ItemProps = {
 const Item = ({ children, className = '' }: ItemProps) => {
     return <div className={`text-body-md text-slate-600 ${className}`}>{children}</div>;
 };
-
+//* Breadcrumb Component -----------------------------------
 type BreadcrumbsProps = {
     separate?: ReactNode;
     children: ReactNode;
@@ -40,6 +41,6 @@ const Breadcrumbs = ({ separate, children, containerClassName = '', className = 
         </nav>
     );
 };
-
+//* Exports -----------------------------------
 Breadcrumbs.Item = Item;
 export default Breadcrumbs;
