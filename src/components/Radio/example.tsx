@@ -32,7 +32,7 @@ export default function RadioExample() {
                     value={val2}
                     onChange={(newVal) => setVal2(newVal as string)}
                     variant='no-icon'
-                    name='radio-group'
+                    name='radio-group' //will be applied to all radios inside the group
                     color='purple-500'
                     size={22}
                     label='Label'
@@ -40,9 +40,15 @@ export default function RadioExample() {
                     helperText='Error Message'
                     className='mt-4'
                 >
-                    <RadioGroup.Radio value='a'>🍌 #A Radio</RadioGroup.Radio>
-                    <RadioGroup.Radio value='b'>🌓 #B Radio</RadioGroup.Radio>
-                    <RadioGroup.Radio value='c'>🐳 #C Radio</RadioGroup.Radio>
+                    <RadioGroup.Radio value='a' id='id1'>
+                        🍌 #A Radio
+                    </RadioGroup.Radio>
+                    <RadioGroup.Radio value='b' id='id2'>
+                        🌓 #B Radio
+                    </RadioGroup.Radio>
+                    <RadioGroup.Radio value='c' id='id3'>
+                        🐳 #C Radio
+                    </RadioGroup.Radio>
                 </RadioGroup>
             </div>
         </div>

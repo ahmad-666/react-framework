@@ -179,7 +179,7 @@ const DataTable = <Row extends BaseRow>({
                         <Checkbox
                             checked={selectionsLocal.includes(idStr)}
                             value={idStr}
-                            onChange={(checked, value) => {
+                            onChange={({ checked, value }) => {
                                 let newValue: (number | string)[] = [];
                                 if (checked) newValue = [...selectionsLocal, value];
                                 else newValue = selectionsLocal.filter((s) => s !== value);

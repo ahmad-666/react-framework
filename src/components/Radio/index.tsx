@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, Children, cloneElement, isValidElement, type ReactNode } from 'react';
+import { Children, cloneElement, isValidElement, type ReactNode, type ChangeEvent } from 'react';
 import FormLabel from '@/components/FormLabel';
 import FormMessage from '@/components/FormMessage';
 import Icon from '@/components/Icon';
@@ -44,8 +44,6 @@ const Radio = ({
     children,
     className = ''
 }: RadioProps) => {
-    const generatedId = useId();
-    const inputId = id || generatedId;
     const parsedColor = useColor(color);
     const getSize = () => {
         let result = 0;
@@ -65,11 +63,13 @@ const Radio = ({
         return result;
     };
     const radioSize = getSize();
+    const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
+        onChange?.(e.target.checked);
+    };
 
     return (
-        <div
-            className={`flex items-center gap-2 ${disabled ? 'opacity-50' : ''} ${readOnly || disabled ? 'pointer-events-none' : 'cursor-pointer'} ${className}`}
-            onClick={() => onChange?.(!checked)}
+        <label
+            className={`text-body-md text-neutral-dark2 flex items-center gap-2 ${disabled ? 'opacity-50' : ''} ${readOnly || disabled ? 'pointer-events-none' : 'cursor-pointer'} ${className}`}
         >
             <div
                 className='rounded-circle aspect-square shrink-0 transition-colors duration-300'
@@ -96,28 +96,23 @@ const Radio = ({
                     {variant === 'icon' && icon}
                 </div>
             </div>
-            <label htmlFor={inputId} className='text-body-md text-neutral-dark2 cursor-pointer'>
-                {children}
-            </label>
+            {children}
             <input
                 type='radio'
-                id={inputId}
+                hidden
+                id={id}
                 name={name}
                 value={value}
                 checked={checked}
-                onChange={() => {}}
+                onChange={onChangeHandler}
                 readOnly={readOnly}
                 disabled={disabled}
-                className='pointer-events-none absolute top-0 left-0 h-0 w-0 opacity-0'
             />
-        </div>
+        </label>
     );
 };
 //* RadioGroup component -----------------------------------
-type RadioGroupProps = Pick<
-    RadioProps,
-    'id' | 'name' | 'variant' | 'size' | 'color' | 'icon' | 'children' | 'className'
-> & {
+type RadioGroupProps = Pick<RadioProps, 'name' | 'variant' | 'size' | 'color' | 'icon' | 'children' | 'className'> & {
     value: null | number | string;
     onChange?: (newValue: null | number | string) => void;
     label?: string;
@@ -126,10 +121,9 @@ type RadioGroupProps = Pick<
     containerClassName?: string;
 };
 const RadioGroup = ({
-    id,
-    name,
     value,
     onChange,
+    name,
     variant = 'no-icon',
     size = 'md',
     color = 'sky-600',
@@ -141,12 +135,9 @@ const RadioGroup = ({
     containerClassName = '',
     className = ''
 }: RadioGroupProps) => {
-    const generatedId = useId();
-    const inputId = id || generatedId;
-
     return (
         <div className={`inline-flex flex-col gap-4 ${className}`}>
-            {!!label && <FormLabel inputId={inputId}>{label}</FormLabel>}
+            {!!label && <FormLabel>{label}</FormLabel>}
             <div role='radiogroup' className={`relative flex flex-col gap-3 ${containerClassName}`}>
                 {Children.map(children, (radio) => {
                     if (!isValidElement<RadioProps>(radio)) return null;
@@ -177,3 +168,14 @@ export default RadioGroup;
 
 //? RadioGroup has value:number|string, onChange:(newValue:number|string)=>void props which control the whole component controlled states
 //? Each RadioGroup.Radio should have its unique value:number|string , also internally we set its value:boolean,onChange:(newValue:boolean)=>void props too
+//? We can use 2 approach for labels and in both cases click on label is equal to click on input and triggers onChange event:
+// #1:
+//     <div>
+//         <label htmlFor="id">...</label>
+//         <input type="radio" hidden id="id" onChange={} />
+//     </div>
+// #2:
+//     <label>
+//         <div>...</div>
+//         <input type="radio" hidden onChange={} />
+//     </label>

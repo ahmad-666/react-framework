@@ -2,7 +2,7 @@ import useColor from '@/hooks/useColor';
 import { type ReactNode } from 'react';
 
 type Props = {
-    inputId: string;
+    inputId?: string;
     color?: string;
     children?: ReactNode;
     onClick?: () => void;
