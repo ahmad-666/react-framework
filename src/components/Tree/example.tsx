@@ -10,14 +10,47 @@ export default function TreeExample() {
             children: [
                 {
                     id: 'next',
-                    label: <>Next.js 🍲</>
+                    label: <>Next.js 🍲</>,
+                    children: [
+                        {
+                            id: 'mui',
+                            label: 'Mui'
+                        },
+                        {
+                            id: 'tailwind',
+                            label: 'Tailwind'
+                        }
+                    ]
+                },
+                {
+                    id: 'zustand',
+                    label: 'zustand'
                 }
             ]
         },
         {
             id: 'vue',
             label: 'Vue',
-            children: [{ id: 'nuxt', label: <>Nuxt.js 🍟</> }]
+            children: [
+                {
+                    id: 'nuxt',
+                    label: <>Nuxt.js 🍟</>,
+                    children: [
+                        {
+                            id: 'vuetify',
+                            label: 'vuetify'
+                        },
+                        {
+                            id: 'tailwind',
+                            label: 'Tailwind'
+                        }
+                    ]
+                },
+                {
+                    id: 'pinia',
+                    label: 'pinia'
+                }
+            ]
         }
     ]);
     //? because of tree structure we store whole tree data and checked,opened,... in 1 single state

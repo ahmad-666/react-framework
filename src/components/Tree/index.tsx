@@ -1,10 +1,11 @@
 'use client';
 
-import { useImperativeHandle, useMemo, useCallback, forwardRef, type ReactNode, type ForwardedRef } from 'react';
+import { useImperativeHandle, useMemo, useCallback, forwardRef, memo, type ReactNode, type ForwardedRef } from 'react';
 import Icon from '@/components/Icon';
 import Checkbox from '@/components/Checkbox';
-import Collapse from '../Collapse';
+import Collapse from '@/components/Collapse';
 
+//* Tree Node ----------------------------------------
 export type Node = {
     /**
      *  must is special format --> '1','1-1','1-2','1-1-1','1-1-2',...
@@ -14,13 +15,80 @@ export type Node = {
      * passing treeId from parent is optional because we manually generate it inside component
      */
     treeId?: string;
+    /** checked state of node checkbox */
     checked?: boolean;
+    /** indeterminate state of node checkbox */
     indeterminate?: boolean;
+    /** open(collapse) state of node */
     open?: boolean;
+    /** label of node */
     label: ReactNode;
+    /** children nodes of node */
     children?: Node[];
+    /** we can have any other optional keys too */
     [key: string]: unknown;
 };
+type TreeNodeProps = {
+    nodes: Node[];
+    indeterminate?: boolean;
+    color?: string;
+    onNodeSelection: (nodes: Node[], nodeId: string, checked: boolean) => void;
+    onNodeCollapse: (nodes: Node[], nodeId: string, open: boolean) => void;
+};
+const TreeNode = ({
+    nodes = [],
+    indeterminate = false,
+    color = 'primary',
+    onNodeSelection,
+    onNodeCollapse
+}: TreeNodeProps) => {
+    return (
+        <div className='space-y-2'>
+            {nodes.map((node) => (
+                <div key={node.treeId}>
+                    <div className='flex justify-between gap-4'>
+                        <Checkbox
+                            checked={node.checked}
+                            indeterminate={indeterminate && node.indeterminate}
+                            onChange={({ checked }) => onNodeSelection(nodes, node.treeId!, checked)}
+                            color={color}
+                            hideMessage
+                        >
+                            {node.label}
+                        </Checkbox>
+                        {!!node.children?.length && (
+                            <button onClick={() => onNodeCollapse(nodes, node.treeId!, !node.open)}>
+                                <Icon
+                                    icon='mdi:chevron-down'
+                                    size='md'
+                                    color='slate-800'
+                                    className={`transition-transform duration-300 ${node.open ? '-rotate-180' : ''}`}
+                                />
+                            </button>
+                        )}
+                    </div>
+                    {node.children?.length && (
+                        <Collapse open={node.open} duration={300} unmountOnClose className='mt-2'>
+                            <div className='ps-4'>
+                                {node.children?.length && (
+                                    <TreeNode
+                                        nodes={node.children}
+                                        indeterminate={indeterminate}
+                                        color={color}
+                                        onNodeSelection={onNodeSelection}
+                                        onNodeCollapse={onNodeCollapse}
+                                    />
+                                )}
+                            </div>
+                        </Collapse>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+const TreeNodeMemo = memo(TreeNode);
+//* Tree ---------------------------------------------
 export type Ref = {
     findNode: (nodes: Node[], cb: (node: Node) => boolean) => Promise<null | Node>;
     findParent: (nodes: Node[], nodeId: string) => Promise<null | Node>;
@@ -31,16 +99,15 @@ export type Ref = {
     traverseTree: (nodes: Node[], cb: (node: Node) => undefined) => void;
     generateTreeIds: (nodes: Node[], parentId: string) => Node[];
 };
-type Props = {
+type TreeProps = {
     data: Node[];
-    onChange?: (newData: Node[]) => void;
     indeterminate?: boolean;
     color?: string;
+    onChange?: (newData: Node[]) => void;
     className?: string;
 };
-
 const Tree = (
-    { data = [], onChange, indeterminate = false, color = 'primary', className = '' }: Props,
+    { data = [], indeterminate = false, color = 'primary', onChange, className = '' }: TreeProps,
     ref?: ForwardedRef<Ref>
 ) => {
     const generateTreeIds = useCallback((nodes: Node[], parentId: string): Node[] => {
@@ -61,10 +128,10 @@ const Tree = (
         // recursive function to go as deep as possible to find the node
         return new Promise(async (resolve) => {
             for (const node of nodes) {
-                if (cb(node)) resolve(node);
+                if (cb(node)) return resolve(node);
                 else if (node.children?.length) {
                     const nestedNode = await findNode(node.children, cb);
-                    resolve(nestedNode);
+                    if (nestedNode) resolve(nestedNode);
                 }
             }
             resolve(null);
@@ -124,7 +191,9 @@ const Tree = (
                 const children = await findChildren(nodes, nodeId);
                 for (const node of children) {
                     descendants.push(node);
-                    descendants.push(...(await findDescendants(children, node.treeId!)));
+                    if (node.children?.length) {
+                        descendants.push(...(await findDescendants(node.children, node.treeId!)));
+                    }
                 }
                 resolve(descendants);
             });
@@ -147,7 +216,7 @@ const Tree = (
         return nodes.map(({ label, children, ...rest }) => ({
             ...structuredClone(rest),
             label,
-            children: children ? safeCloneNodes(children) : undefined
+            ...(children?.length && { children: safeCloneNodes(children) })
         }));
     }, []);
     const treeValidator = useCallback((nodes: Node[]): Node[] => {
@@ -155,7 +224,7 @@ const Tree = (
         // if any of children are not checked then parent node itself should be unchecked too
         return nodes.map((node) => {
             if (node.children?.length) {
-                const validatedChildren = treeValidator(node.children);
+                const validatedChildren = treeValidator(node.children); //first we validate children of node then we check 'checked' state of validated children
                 const allChecked = validatedChildren.every((node) => node.checked);
                 const someChecked = validatedChildren.some((node) => node.checked);
                 return {
@@ -177,16 +246,9 @@ const Tree = (
             // when we select node we want to select all of its descendants
             // when we deselect node we want to deselect all of its descendants
             const descendants = await findDescendants(nodesCopy, nodeId);
-            if (checked) {
-                for (const node of descendants) {
-                    node.checked = true;
-                    node.indeterminate = false;
-                }
-            } else {
-                for (const node of descendants) {
-                    node.checked = false;
-                    node.indeterminate = false;
-                }
+            for (const node of descendants) {
+                node.checked = checked;
+                node.indeterminate = false;
             }
             const validatedNodes = treeValidator(nodesCopy);
             onChange?.(validatedNodes);
@@ -213,46 +275,18 @@ const Tree = (
         generateTreeIds
     }));
 
-    const renderTree = (nodes: Node[]) => {
-        return (
-            <div className='space-y-2'>
-                {nodes.map((node) => (
-                    <div key={node.treeId}>
-                        <div className='flex justify-between gap-4'>
-                            <Checkbox
-                                checked={node.checked}
-                                indeterminate={indeterminate && node.indeterminate}
-                                onChange={({ checked }) => onNodeSelection(nodes, node.treeId!, checked)}
-                                color={color}
-                                hideMessage
-                            >
-                                {node.label}
-                            </Checkbox>
-                            {!!node.children?.length && (
-                                <button
-                                    onClick={() => {
-                                        onNodeCollapse(nodes, node.treeId!, !node.open);
-                                    }}
-                                >
-                                    <Icon
-                                        icon='mdi:chevron-down'
-                                        size='md'
-                                        color='slate-800'
-                                        className={`transition-transform duration-300 ${node.open ? '-rotate-180' : ''}`}
-                                    />
-                                </button>
-                            )}
-                        </div>
-                        <Collapse open={node.open} duration={300} unmountOnClose className='mt-2'>
-                            <div className='ps-4'>{node.children?.length && renderTree(node.children)}</div>
-                        </Collapse>
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
-    return <div className={`${className}`}>{renderTree(dataWithTreeIds)}</div>;
+    return (
+        <div className={`${className}`}>
+            <TreeNodeMemo
+                nodes={dataWithTreeIds}
+                indeterminate={indeterminate}
+                color={color}
+                onNodeSelection={onNodeSelection}
+                onNodeCollapse={onNodeCollapse}
+            />
+        </div>
+    );
 };
-
 export default forwardRef(Tree);
+
+//? check all methods separately
