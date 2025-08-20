@@ -32,8 +32,8 @@ type TreeNodeProps = {
     nodes: Node[];
     indeterminate?: boolean;
     color?: string;
-    onNodeSelection: (nodes: Node[], nodeId: string, checked: boolean) => void;
-    onNodeCollapse: (nodes: Node[], nodeId: string, open: boolean) => void;
+    onNodeSelection: (nodeId: string, checked: boolean) => void;
+    onNodeCollapse: (nodeId: string, open: boolean) => void;
 };
 const TreeNode = ({
     nodes = [],
@@ -50,14 +50,14 @@ const TreeNode = ({
                         <Checkbox
                             checked={node.checked}
                             indeterminate={indeterminate && node.indeterminate}
-                            onChange={({ checked }) => onNodeSelection(nodes, node.treeId!, checked)}
+                            onChange={({ checked }) => onNodeSelection(node.treeId!, checked)}
                             color={color}
                             hideMessage
                         >
                             {node.label}
                         </Checkbox>
                         {!!node.children?.length && (
-                            <button onClick={() => onNodeCollapse(nodes, node.treeId!, !node.open)}>
+                            <button onClick={() => onNodeCollapse(node.treeId!, !node.open)}>
                                 <Icon
                                     icon='mdi:chevron-down'
                                     size='md'
@@ -204,8 +204,13 @@ const Tree = (
         (nodes: Node[], nodeId: string): Promise<Node[]> => {
             // if we want siblings of node with id of '1-2-3' it means we want all nodes that their parent is '1-2'
             return new Promise(async (resolve) => {
-                const parentId = nodeId.split('-').slice(0, -1).join('-');
-                const siblings = await findChildren(nodes, parentId);
+                let siblings: Node[] = [];
+                const isRootNode = !nodeId.includes('-');
+                if (isRootNode) siblings = nodes;
+                else {
+                    const parentId = nodeId.split('-').slice(0, -1).join('-');
+                    siblings = await findChildren(nodes, parentId);
+                }
                 resolve(siblings.filter((node) => node.treeId !== nodeId));
             });
         },
@@ -241,10 +246,11 @@ const Tree = (
         });
     }, []);
     const onNodeSelection = useCallback(
-        async (nodes: Node[], nodeId: string, checked: boolean) => {
-            const nodesCopy = safeCloneNodes(nodes);
+        async (nodeId: string, checked: boolean) => {
+            //? because we want to perform selection action on whole tree we should clone full tree(dataWithTreeIds) so no need to pass nodes:Node[] as arg
             // when we select node we want to select all of its descendants
             // when we deselect node we want to deselect all of its descendants
+            const nodesCopy = safeCloneNodes(dataWithTreeIds);
             const descendants = await findDescendants(nodesCopy, nodeId);
             for (const node of descendants) {
                 node.checked = checked;
@@ -253,17 +259,19 @@ const Tree = (
             const validatedNodes = treeValidator(nodesCopy);
             onChange?.(validatedNodes);
         },
-        [findDescendants, safeCloneNodes, treeValidator, onChange]
+        [dataWithTreeIds, findDescendants, safeCloneNodes, treeValidator, onChange]
     );
     const onNodeCollapse = useCallback(
-        async (nodes: Node[], nodeId: string, open: boolean) => {
-            const nodesCopy = safeCloneNodes(nodes);
+        async (nodeId: string, open: boolean) => {
+            //? because we want to perform selection action on whole tree we should clone full tree(dataWithTreeIds) so no need to pass nodes:Node[] as arg
+            const nodesCopy = safeCloneNodes(dataWithTreeIds);
             const node = await findNode(nodesCopy, (node) => node.treeId === nodeId);
             if (node) node.open = open;
             onChange?.(nodesCopy);
         },
-        [findNode, safeCloneNodes, onChange]
+        [dataWithTreeIds, findNode, safeCloneNodes, onChange]
     );
+
     useImperativeHandle(ref, () => ({
         findNode,
         findParent,
@@ -289,4 +297,5 @@ const Tree = (
 };
 export default forwardRef(Tree);
 
-//? check all methods separately
+//? check traverseTree, findDescendants
+//? checked not working correctly ... check treeValidator
