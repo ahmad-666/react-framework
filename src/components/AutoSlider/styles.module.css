@@ -1,12 +1,18 @@
 .container {
-    animation: auto-slider var(--duration) linear infinite;
+    .slider {
+        animation: auto-slider var(--duration) linear infinite;
+        animation-play-state: var(--playing-state);
+        animation-direction: var(--direction);
+    }
     &:hover {
-        animation-play-state: var(--hover-state);
+        .slider {
+            animation-play-state: var(--hover-state);
+        }
     }
 }
 @keyframes auto-slider {
     from {
-        transform: translateX(--start);
+        transform: translateX(var(--start));
     }
     to {
         transform: translateX(var(--end));

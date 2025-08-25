@@ -4,9 +4,10 @@ import { useRef, useState, useEffect, useCallback, Fragment, type ReactNode, typ
 import styles from './styles.module.css';
 
 type Props<T> = {
+    playing?: boolean;
     slides: T[];
     cloneCounts?: number;
-    /** animation duration in milliseconds */
+    /** animation duration in milliseconds for 1 full loop */
     duration?: number;
     spacing?: number;
     reverse?: boolean;
@@ -17,6 +18,7 @@ type Props<T> = {
 };
 
 export default function AutoSlider<T>({
+    playing = true,
     slides = [],
     cloneCounts = 2,
     duration = 30_000,
@@ -28,19 +30,20 @@ export default function AutoSlider<T>({
     className = ''
 }: Props<T>) {
     const container = useRef<HTMLDivElement>(null!);
-    const [start, setStart] = useState(0);
-    const [end, setEnd] = useState(0);
+    const [position, setPosition] = useState({ start: 0, end: 0 });
     const calcMovement = useCallback(
         (elm: HTMLDivElement) => {
-            // each slide can have different sizing
-            const prevSlides = Array.from(elm.querySelectorAll('.slide.prev')) as HTMLElement[];
+            //* each slide can have different sizing
             const mainSlides = Array.from(elm.querySelectorAll('.slide.main')) as HTMLElement[];
-            const prevSlidesSize = prevSlides.reduce((sum, slide) => sum + slide.offsetWidth, 0);
-            const mainSlidesSize = mainSlides.reduce((sum, slide) => sum + slide.offsetWidth, 0);
-            setStart(prevSlidesSize);
-            setEnd((!reverse ? -1 : 1) * (prevSlidesSize + mainSlidesSize));
+            const start = mainSlides.at(0)?.offsetLeft || 0;
+            const end =
+                start + mainSlides.reduce((sum, slide) => sum + slide.offsetWidth, 0) + mainSlides.length * spacing; //OR mainSlides.at(-1)?.offsetLeft + mainSlides.at(-1)?.offsetWidth + spacing
+            setPosition({
+                start: -start,
+                end: -end
+            });
         },
-        [reverse]
+        [spacing]
     );
     useEffect(() => {
         const elm = container.current;
@@ -55,16 +58,24 @@ export default function AutoSlider<T>({
     }, [calcMovement]);
 
     return (
-        <div className={`overflow-hidden ${className}`}>
+        <div
+            ref={container}
+            className={`overflow-hidden ${styles.container} ${className}`}
+            style={
+                {
+                    '--duration': `${duration}ms`,
+                    '--start': `${position.start}px`,
+                    '--end': `${position.end}px`,
+                    '--playing-state': playing ? 'running' : 'paused',
+                    '--hover-state': !playing || pauseOnHover ? 'paused' : 'running',
+                    '--direction': reverse ? 'reverse' : 'normal'
+                } as CSSProperties
+            }
+        >
             <div
-                ref={container}
-                className={`flex flex-nowrap ${styles.container}`}
+                className={`flex flex-nowrap ${styles.slider}`}
                 style={
                     {
-                        '--duration': `${duration}ms`,
-                        '--start': `${start}px`,
-                        '--end': `${end}px`,
-                        '--hover-state': pauseOnHover ? 'paused' : 'running',
                         gap: `${spacing}px`
                     } as CSSProperties
                 }

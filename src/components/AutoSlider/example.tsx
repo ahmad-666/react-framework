@@ -7,25 +7,26 @@ type Slide = {
 };
 
 export default function AutoSliderExample() {
-    const slidesCount = 10;
+    const slidesCount = 5;
     const slides: Slide[] = Array.from({ length: slidesCount }, (_, i) => ({
         id: i,
         name: `slide ${i}`,
-        desc: `desc ${i}`
+        desc: Math.random() > 0.5 ? `desc ${i}` : `desc desc desc desc desc desc desc ${i}`
     }));
 
     return (
         <div>
             <AutoSlider
+                playing
                 slides={slides}
                 cloneCounts={2}
-                duration={30_000}
-                spacing={20}
-                pauseOnHover={false}
+                duration={3_000}
+                spacing={30}
+                pauseOnHover
                 reverse={false}
             >
                 {({ name, desc }) => (
-                    <div className='flex w-40 flex-col items-center gap-8 rounded-md border border-slate-300 p-4'>
+                    <div className='flex w-auto flex-col items-center gap-8 rounded-md border-4 border-slate-300 p-8'>
                         <p className='text-title-lg text-sky-700'>{name}</p>
                         <p className='text-body-md text-slate-700'>{desc}</p>
                     </div>
