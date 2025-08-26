@@ -107,5 +107,3 @@ export default function AutoSlider<T>({
         </div>
     );
 }
-
-//test with padding,margin,gap,border

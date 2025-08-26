@@ -8,8 +8,10 @@ import useColor from '@/hooks/useColor';
 //* Types -----------------------------
 export type Variant = 'fill' | 'outline' | 'text';
 export type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type Component = 'div' | 'p' | 'label' | 'button' | 'a' | typeof Link;
 
 type Props = ComponentProps<'button'> & {
+    component?: Component;
     variant?: Variant;
     size?: Size;
     color?: string;
@@ -26,6 +28,7 @@ type Props = ComponentProps<'button'> & {
 
 //* Component -----------------------------
 const Button = ({
+    component,
     variant = 'fill',
     size = 'md',
     color = 'primary',
@@ -48,7 +51,7 @@ const Button = ({
     ...rest
 }: Props) => {
     const isLink = !!href;
-    const Component = isLink ? Link : 'button';
+    const Comp = component || (isLink ? Link : 'button');
     const parsedColor = useColor(color);
     const parsedNeutralColor = useColor('neutral-light4');
     const cssClasses = {
@@ -74,7 +77,7 @@ const Button = ({
     const loaderSize = size === 'xs' ? 12 : size === 'sm' ? 16 : size === 'md' ? 22 : size === 'lg' ? 28 : 32;
 
     return (
-        <Component
+        <Comp
             //@ts-expect-error "manually handle type of href"
             href={isLink ? href : undefined}
             target={isLink ? target : undefined}
@@ -101,7 +104,7 @@ const Button = ({
             ) : (
                 children
             )}
-        </Component>
+        </Comp>
     );
 };
 
