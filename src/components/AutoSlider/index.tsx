@@ -46,7 +46,7 @@ export default function AutoSlider<T>({
         [spacing]
     );
     useEffect(() => {
-        const elm = container.current;
+        const elm = container.current?.querySelector(`.${styles.slider}`) as null | HTMLDivElement;
         if (elm) {
             calcMovement(elm);
             const ro = new ResizeObserver(() => calcMovement(elm));
