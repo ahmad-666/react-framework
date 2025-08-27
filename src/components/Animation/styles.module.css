@@ -1,0 +1,72 @@
+/* ---------------------- Fade-In Animation ---------------------- */
+.fade-in {
+    animation: fade-in var(--duration) var(--easing) forwards;
+}
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+/* ---------------------- Fade-Out Animation ---------------------- */
+.fade-out {
+    animation: fade-out var(--duration) var(--easing) forwards;
+}
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+/* ---------------------- Slide-In-LTR Animation ---------------------- */
+.slide-in-ltr {
+    animation: slide-in-ltr var(--duration) var(--easing) forwards;
+}
+@keyframes slide-in-ltr {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+/* ---------------------- Slide-OUT-LTR Animation ---------------------- */
+.slide-out-ltr {
+    animation: slide-out-ltr var(--duration) var(--easing) forwards;
+}
+@keyframes slide-out-ltr {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+/* ---------------------- Slide-In-RTL Animation ---------------------- */
+.slide-in-rtl {
+    animation: slide-in-rtl var(--duration) var(--easing) forwards;
+}
+@keyframes slide-in-rtl {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+/* ---------------------- Slide-OUT-RTL Animation ---------------------- */
+.slide-out-rtl {
+    animation: slide-out-rtl var(--duration) var(--easing) forwards;
+}
+@keyframes slide-out-rtl {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
