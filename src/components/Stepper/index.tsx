@@ -1,6 +1,14 @@
 'use client';
 
-import { Children, cloneElement, isValidElement, type ReactNode, type ReactElement, type CSSProperties } from 'react';
+import {
+    useMemo,
+    Children,
+    cloneElement,
+    isValidElement,
+    type ReactNode,
+    type ReactElement,
+    type CSSProperties
+} from 'react';
 import Icon from '@/components/Icon';
 import Animation, { type AnimationType } from '@/components/Animation';
 import useColor from '@/hooks/useColor';
@@ -146,14 +154,19 @@ const Stepper = ({
     className = ''
 }: Props) => {
     const parsedColor = useColor(color);
-    const Items = Children.toArray(children).filter(
-        //@ts-expect-error "manually type child"
-        (child: ReactElement<ItemProps>) => child?.type?.name === 'Item'
-    );
-    const Contents = Children.toArray(children).filter(
-        //@ts-expect-error "manually type child"
-        (child: ReactElement<ContentProps>) => child?.type?.name === 'Content'
-    );
+    const Items = useMemo<ReactElement<ItemProps>[]>(() => {
+        return Children.toArray(children).filter(
+            //@ts-expect-error "manually type child"
+            (child: ReactElement<ItemProps>) => child?.type === Item
+        );
+    }, [children]);
+    const Contents = useMemo<ReactElement<ContentProps>[]>(() => {
+        return Children.toArray(children).filter(
+            //@ts-expect-error "manually type child"
+            (child: ReactElement<ContentProps>) => child?.type === Content
+        );
+    }, [children]);
+    const valueIndex = Items.findIndex((item) => item.props?.value === value);
 
     return (
         <div
@@ -171,8 +184,6 @@ const Stepper = ({
                     if (!isValidElement<ItemProps>(Item)) return null;
                     const { value: stepValue, className: stepClassName2 = '', ...rest } = Item.props;
                     const isLastStep = i === Items.length - 1;
-                    //@ts-expect-error "manually type item"
-                    const valueIndex = Items.findIndex((item) => item.props?.value === value);
                     const status: Status = i === valueIndex ? 'active' : i < valueIndex ? 'complete' : 'default';
                     return (
                         <>

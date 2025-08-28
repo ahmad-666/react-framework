@@ -13,7 +13,7 @@ export default function TabsExample() {
                 <p className='text-title-lg'>#1: Basic Tabs with grow and center align</p>
                 <Tabs
                     value={val1}
-                    onChange={(newVal) => setVal1(newVal)}
+                    onChange={(newVal) => setVal1(newVal as string)}
                     align='center'
                     grow
                     showArrows={false}
@@ -31,7 +31,7 @@ export default function TabsExample() {
                 <p className='text-title-lg'>#2: Draggable Tabs with arrows,indicator</p>
                 <Tabs
                     value={val2}
-                    onChange={(newVal) => setVal2(newVal)}
+                    onChange={(newVal) => setVal2(newVal as string)}
                     align='start'
                     grow={false}
                     showArrows
@@ -48,23 +48,18 @@ export default function TabsExample() {
             </div>
             <div className='mt-30'>
                 <p className='text-title-lg'>#3: Tabs with fixed width with content</p>
-                <Tabs value={val3} onChange={(newVal) => setVal3(newVal)} activeClassName='bg-slate-300'>
+                <Tabs value={val3} onChange={(newVal) => setVal3(newVal as string)} activeClassName='bg-slate-300'>
                     {tabs.slice(0, 2).map((tab) => (
                         <Tabs.Tab key={tab} value={tab} className='w-45 text-center'>
                             {tab}
                         </Tabs.Tab>
                     ))}
+                    {tabs.slice(0, 2).map((tab, i) => (
+                        <Tabs.Content key={tab} value={tab} className='text-title-lg'>
+                            Tab#{i + 1}
+                        </Tabs.Content>
+                    ))}
                 </Tabs>
-                {val3 === 'tab#1' && (
-                    <div className='animate-fade-in mt-10'>
-                        <h1>Tab#1</h1>
-                    </div>
-                )}
-                {val3 === 'tab#2' && (
-                    <div className='animate-fade-in mt-10'>
-                        <h1>Tab#2</h1>
-                    </div>
-                )}
             </div>
         </div>
     );
