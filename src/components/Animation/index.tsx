@@ -3,13 +3,13 @@
 import { useState, useEffect, type ReactNode, type CSSProperties } from 'react';
 import styles from './styles.module.css';
 
-type Animation = 'fade' | 'slide-ltr' | 'slide-rtl';
+export type AnimationType = 'fade' | 'slide-ltr' | 'slide-rtl';
 type Easing = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
 type Props = {
     /** if true first we render children and then start 'in' animation , if false first play 'out' animation and then remove children from DOM  */
     show: boolean;
     /** set one of predefined animations */
-    animation?: Animation;
+    animation?: AnimationType;
     /** animation duration in milliseconds */
     duration?: number;
     /** easing of animation */
@@ -63,5 +63,7 @@ export default function Animation({
 //? Basic Flow:
 //* if 'show' prop set to true -->  first we render children and then start 'in' animation
 //* if 'show' prop set to false-->  first play 'out' animation and then remove children from DOM
+
+//! We handle condition rendering from inside <Animation /> component so we should NOT use condition rendering for rendering <Animation /> itself and we should only set proper 'show' prop
 
 //? Tip: sometimes for simpler use-cases we can apply 'in' animation with normal css class like 'animate-fade-in' and use dynamic 'key' prop that changes base on user interaction and now each time we change 'key' prop then react re-render that component and we see animation effect.

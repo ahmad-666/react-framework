@@ -1,7 +1,8 @@
 'use client';
 
-import { Children, cloneElement, isValidElement, type ReactNode, type CSSProperties } from 'react';
+import { Children, cloneElement, isValidElement, type ReactNode, type ReactElement, type CSSProperties } from 'react';
 import Icon from '@/components/Icon';
+import Animation, { type AnimationType } from '@/components/Animation';
 import useColor from '@/hooks/useColor';
 
 //* Stepper Item ---------------------------------------------
@@ -46,28 +47,28 @@ const Item = ({
     className = ''
 }: ItemProps) => {
     const parsedColor = useColor(color); //each step can have different color
-    const getCircleSize = () => {
-        let result = 0;
+    const getSizing = () => {
+        let circleSize = 0;
         switch (size) {
             case 'sm':
-                result = 15;
+                circleSize = 25;
                 break;
             case 'md':
-                result = 20;
+                circleSize = 35;
                 break;
             case 'lg':
-                result = 25;
+                circleSize = 45;
                 break;
             default:
-                result = size;
+                circleSize = size;
         }
-        return result;
+        return { circleSize, iconSize: circleSize - 8 };
     };
-    const circleSize = getCircleSize();
+    const { circleSize, iconSize } = getSizing();
 
     return (
         <div
-            className={`flex items-center gap-3 ${direction === 'horizontal' ? 'flex-col' : 'flex-row'} ${status === 'default' ? 'opacity-60' : ''} $ ${className}`}
+            className={`flex items-center gap-3 ${direction === 'horizontal' ? 'flex-col' : 'flex-row'} ${status === 'default' ? 'opacity-50' : ''} ${className}`}
             style={
                 {
                     '--color': parsedColor
@@ -75,19 +76,32 @@ const Item = ({
             }
         >
             <div
-                className={`rounded-circle shrink- inline-flex aspect-square items-center justify-center ${status === 'default' ? 'bg-slate-400 text-(--color)' : status === 'active' ? 'bg-(--primary) text-white outline outline-offset-4 outline-(--color) outline-solid' : status === 'complete' ? 'bg-green-600 text-white' : ''} ${stepClassName}`}
+                className={`rounded-circle inline-flex aspect-square shrink-0 items-center justify-center transition-colors duration-300 ${status === 'default' ? 'bg-slate-200 text-slate-500' : status === 'active' ? 'bg-(--color) text-white outline outline-offset-4 outline-(--color) outline-solid' : status === 'complete' ? 'bg-green-600 text-white' : ''} ${stepClassName}`}
                 style={{
                     width: `${circleSize}px`,
                     height: `${circleSize}px`
                 }}
             >
-                {status === 'default' && (icon ? <Icon icon={icon} size='lg' color='inherit' /> : step)}
-                {status === 'active' && (activeIcon ? <Icon icon={activeIcon} size='lg' color='inherit' /> : step)}
+                {status === 'default' && (icon ? <Icon icon={icon} size={iconSize} color='inherit' /> : step)}
+                {status === 'active' &&
+                    (activeIcon ? <Icon icon={activeIcon} size={iconSize} color='inherit' /> : step)}
                 {status === 'complete' &&
-                    (completeIcon ? <Icon icon={completeIcon} size='lg' color='inherit' /> : step)}
+                    (completeIcon ? <Icon icon={completeIcon} size={iconSize} color='inherit' /> : step)}
             </div>
             {children}
         </div>
+    );
+};
+//* Stepper Content ---------------------------------------------
+type ContentProps = Pick<ItemProps, 'value' | 'children' | 'className'> & {
+    show?: boolean;
+    animation?: AnimationType;
+};
+const Content = ({ value, show = false, animation = 'slide-ltr', children, className = '' }: ContentProps) => {
+    return (
+        <Animation show={show} duration={300} easing='linear' animation={animation} className={`${className}`}>
+            {children}
+        </Animation>
     );
 };
 //* Stepper ---------------------------------------------
@@ -103,12 +117,15 @@ type Props = Pick<
     | 'children'
     | 'stepClassName'
     | 'className'
-> & {
-    /** value of Stepper , should be one of 'value' prop of Stepper.Item */
-    value: number | string;
-    onChange?: (value: number | string) => void;
-    dividerClassName?: string;
-};
+> &
+    Pick<ContentProps, 'animation'> & {
+        /** value of Stepper , should be one of 'value' prop of Stepper.Item */
+        value: number | string;
+        onChange?: (value: number | string) => void;
+        stepsContainerClassName?: string;
+        contentsContainerClassName?: string;
+        dividerClassName?: string;
+    };
 
 const Stepper = ({
     direction = 'horizontal',
@@ -117,71 +134,102 @@ const Stepper = ({
     clickable = false,
     color = 'sky-600',
     size = 'md',
+    animation = 'slide-ltr',
     icon,
     activeIcon,
     completeIcon,
     children,
+    stepsContainerClassName = '',
     stepClassName = '',
     dividerClassName = '',
-    className
+    contentsContainerClassName = '',
+    className = ''
 }: Props) => {
     const parsedColor = useColor(color);
+    const Items = Children.toArray(children).filter(
+        //@ts-expect-error "manually type child"
+        (child: ReactElement<ItemProps>) => child?.type?.name === 'Item'
+    );
+    const Contents = Children.toArray(children).filter(
+        //@ts-expect-error "manually type child"
+        (child: ReactElement<ContentProps>) => child?.type?.name === 'Content'
+    );
 
     return (
         <div
-            className={`flex flex-nowrap items-center gap-3 overflow-auto ${direction === 'horizontal' ? 'flex-row' : 'flex-col'} ${className}`}
+            className={`overflow-hidden ${className}`}
             style={
                 {
                     '--color': parsedColor
                 } as CSSProperties
             }
         >
-            {Children.map(children, (Item, i) => {
-                if (!isValidElement<ItemProps>(Item)) return null;
-                const { value: stepValue, className: stepClassName2, ...rest } = Item.props;
-                const isLastStep = i === Children.count(children) - 1;
-                //@ts-expect-error "manually type item.props"
-                const valueIndex = Children.toArray(children).findIndex((item) => item.props?.value === value);
-                const status: Status = i === valueIndex ? 'active' : i < valueIndex ? 'complete' : 'default';
-                return (
-                    <>
-                        <div
-                            role={clickable ? 'button' : undefined}
-                            onClick={() => {
-                                if (clickable) onChange?.(stepValue);
-                            }}
-                            className={`grow ${clickable ? 'cursor-pointer' : ''}`}
-                        >
-                            {cloneElement<ItemProps>(Item, {
-                                direction,
-                                value: stepValue,
-                                step: i + 1,
-                                status,
-                                size,
-                                color,
-                                icon,
-                                activeIcon,
-                                completeIcon,
-                                clickable,
-                                stepClassName,
-                                className: `${stepClassName} ${stepClassName2}`,
-                                ...rest
-                            })}
-                        </div>
-
-                        {!isLastStep && (
-                            <span
-                                className={`$} grow rounded-md ${direction === 'horizontal' ? 'h-0.5' : 'w-0.5'} ${
-                                    status === 'complete' ? 'bg-(--color)' : 'bg-slate-400'
-                                } ${dividerClassName}`}
-                            />
-                        )}
-                    </>
-                );
-            })}
+            <div
+                className={`flex flex-nowrap items-center gap-3 overflow-auto p-4 ${direction === 'horizontal' ? 'flex-row' : 'flex-col'} ${stepsContainerClassName}`}
+            >
+                {Children.map(Items, (Item, i) => {
+                    if (!isValidElement<ItemProps>(Item)) return null;
+                    const { value: stepValue, className: stepClassName2 = '', ...rest } = Item.props;
+                    const isLastStep = i === Items.length - 1;
+                    //@ts-expect-error "manually type item"
+                    const valueIndex = Items.findIndex((item) => item.props?.value === value);
+                    const status: Status = i === valueIndex ? 'active' : i < valueIndex ? 'complete' : 'default';
+                    return (
+                        <>
+                            <div
+                                role={clickable ? 'button' : undefined}
+                                onClick={() => {
+                                    if (clickable) onChange?.(stepValue);
+                                }}
+                                className={`shrink-0 ${clickable ? 'cursor-pointer' : ''}`}
+                            >
+                                {cloneElement<ItemProps>(Item, {
+                                    direction,
+                                    value: stepValue,
+                                    step: i + 1,
+                                    status,
+                                    size,
+                                    color,
+                                    icon,
+                                    activeIcon,
+                                    completeIcon,
+                                    clickable,
+                                    stepClassName,
+                                    className: `${stepClassName} ${stepClassName2}`,
+                                    ...rest
+                                })}
+                            </div>
+                            {!isLastStep && (
+                                <div
+                                    className={`relative grow overflow-hidden rounded-full bg-slate-200 ${direction === 'horizontal' ? 'h-1' : 'w-1'} ${dividerClassName}`}
+                                >
+                                    <div
+                                        className={`absolute top-0 left-0 h-full w-full transition-all duration-300 ${direction === 'horizontal' ? 'origin-left' : 'origin-top'} ${status === 'complete' ? `bg-green-600 ${direction === 'horizontal' ? 'scale-x-100' : 'scale-y-100'}` : status === 'active' ? `bg-(--color) ${direction === 'horizontal' ? 'scale-x-50' : 'scale-y-50'}` : `bg-transparent ${direction === 'horizontal' ? 'scale-x-0' : 'scale-y-0'}`}`}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    );
+                })}
+            </div>
+            <div className={`mt-10 ${contentsContainerClassName}`}>
+                {Children.map(Contents, (Content) => {
+                    if (!isValidElement<ContentProps>(Content)) return null;
+                    const { value: contentValue, ...rest } = Content.props;
+                    return cloneElement<ContentProps>(Content, {
+                        value: contentValue,
+                        show: contentValue === value,
+                        animation,
+                        ...rest
+                    });
+                })}
+            </div>
         </div>
     );
 };
 
 Stepper.Item = Item;
+Stepper.Content = Content;
 export default Stepper;
+
+//? We have Stepper , Stepper.Item and Stepper.Content
