@@ -86,12 +86,16 @@ const Tabs = ({
     const containerRef = useRef<HTMLDivElement>(null!);
     const parsedIndicatorColor = useColor(indicatorColor);
     const TabChildren = useMemo<ReactElement<TabProps>[]>(() => {
-        //@ts-expect-error "manually type children"
-        return Children.toArray(children).filter((child: ReactElement<TabProps>) => child.type === Tab);
+        return Children.toArray(children).filter(
+            //@ts-expect-error "manually type children"
+            (child: ReactElement<TabProps>) => isValidElement<TabProps>(child) && child.type === Tab
+        );
     }, [children]);
     const ContentChildren = useMemo<ReactElement<ContentProps>[]>(() => {
-        //@ts-expect-error "manually type children"
-        return Children.toArray(children).filter((child: ReactElement<ContentProps>) => child.type === Content);
+        return Children.toArray(children).filter(
+            //@ts-expect-error "manually type children"
+            (child: ReactElement<ContentProps>) => isValidElement<ContentProps>(child) && child.type === Content
+        );
     }, [children]);
     const activeIdx = TabChildren.findIndex((child) => child.props.value === value);
     const scrollIntoActiveTab = () => {
@@ -135,7 +139,6 @@ const Tabs = ({
                     className={`relative flex w-full flex-nowrap gap-0 overflow-auto ${align === 'start' ? 'justify-start' : align === 'center' ? 'justify-center' : 'justify-end'}`}
                 >
                     {Children.map(TabChildren, (Tab) => {
-                        if (!isValidElement<TabProps>(Tab)) return null;
                         const { value: tabValue, className, ...rest } = Tab.props;
                         const isActive = value === tabValue;
                         return cloneElement<TabProps>(Tab, {
@@ -179,7 +182,6 @@ const Tabs = ({
             </div>
             <div className={`mt-10 ${contentsContainerClassName}`}>
                 {Children.map(ContentChildren, (Content) => {
-                    if (!isValidElement<ContentProps>(Content)) return null;
                     const { value: contentValue, ...rest } = Content.props;
                     return cloneElement<ContentProps>(Content, {
                         show: contentValue === value,

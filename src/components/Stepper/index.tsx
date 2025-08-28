@@ -157,13 +157,13 @@ const Stepper = ({
     const Items = useMemo<ReactElement<ItemProps>[]>(() => {
         return Children.toArray(children).filter(
             //@ts-expect-error "manually type child"
-            (child: ReactElement<ItemProps>) => child?.type === Item
+            (child: ReactElement<ItemProps>) => isValidElement<ItemProps>(child) && child?.type === Item
         );
     }, [children]);
     const Contents = useMemo<ReactElement<ContentProps>[]>(() => {
         return Children.toArray(children).filter(
             //@ts-expect-error "manually type child"
-            (child: ReactElement<ContentProps>) => child?.type === Content
+            (child: ReactElement<ContentProps>) => isValidElement<ContentProps>(child) && child?.type === Content
         );
     }, [children]);
     const valueIndex = Items.findIndex((item) => item.props?.value === value);
@@ -181,7 +181,6 @@ const Stepper = ({
                 className={`flex flex-nowrap items-center gap-3 overflow-auto p-4 ${direction === 'horizontal' ? 'flex-row' : 'flex-col'} ${stepsContainerClassName}`}
             >
                 {Children.map(Items, (Item, i) => {
-                    if (!isValidElement<ItemProps>(Item)) return null;
                     const { value: stepValue, className: stepClassName2 = '', ...rest } = Item.props;
                     const isLastStep = i === Items.length - 1;
                     const status: Status = i === valueIndex ? 'active' : i < valueIndex ? 'complete' : 'default';
@@ -225,7 +224,6 @@ const Stepper = ({
             </div>
             <div className={`mt-10 ${contentsContainerClassName}`}>
                 {Children.map(Contents, (Content) => {
-                    if (!isValidElement<ContentProps>(Content)) return null;
                     const { value: contentValue, ...rest } = Content.props;
                     return cloneElement<ContentProps>(Content, {
                         value: contentValue,
