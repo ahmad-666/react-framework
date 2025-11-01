@@ -26,7 +26,8 @@ export default function TimelineExample() {
                     color='green-600'
                     iconColor='white'
                     lineColor='slate-300'
-                    lineSize={80}
+                    lineSize={50}
+                    renderOpposite
                     dotClassName='shadow-[0_0_0_5px_rgba(0,0,0,0.1)]'
                     lineClassName=''
                     className='mt-10'
@@ -35,12 +36,23 @@ export default function TimelineExample() {
                         <Timeline.Item.Content>
                             Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem consequatur minima delectus
                             maxime dolores quisquam ratione corrupti error reiciendis, beatae amet similique provident
-                            inventore reprehenderit doloribus exercitationem id
+                            inventore reprehenderit doloribus exercitationem id Lorem ipsum dolor sit amet consectetur
+                            adipisicing elit. Rem consequatur minima delectus maxime dolores quisquam ratione corrupti
+                            error reiciendis, beatae amet similique provident inventore reprehenderit doloribus
+                            exercitationem id Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem consequatur
+                            minima delectus maxime dolores quisquam ratione corrupti error reiciendis, beatae amet
+                            similique provident inventore reprehenderit doloribus exercitationem id Lorem ipsum dolor
+                            sit amet consectetur adipisicing elit. Rem consequatur minima delectus maxime dolores
+                            quisquam ratione corrupti error reiciendis, beatae amet similique provident inventore
+                            reprehenderit doloribus exercitationem id Lorem ipsum dolor sit amet consectetur adipisicing
+                            elit. Rem consequatur minima delectus maxime dolores quisquam ratione corrupti error
+                            reiciendis, beatae amet similique provident inventore reprehenderit doloribus exercitationem
+                            id
                         </Timeline.Item.Content>
                     </Timeline.Item>
                     <Timeline.Item reverse icon='mdi:user' color='orange-600' iconColor='orange-200'>
                         <Timeline.Item.Opposite>Opposite</Timeline.Item.Opposite>
-                        <Timeline.Item.Dot className='rounded-md'>
+                        <Timeline.Item.Dot className='rounded-md bg-white'>
                             <Icon icon='mdi:check' color='green-500' size='lg' />
                         </Timeline.Item.Dot>
                         <Timeline.Item.Content>
@@ -60,7 +72,7 @@ export default function TimelineExample() {
             </div>
             <div className='mt-20'>
                 <p>#2: Timeline with custom content:</p>
-                <Timeline className='mt-10'>
+                <Timeline renderOpposite={false} className='mt-10'>
                     {items.map((item) => (
                         <Timeline.Item key={item.title}>
                             <Timeline.Item.Content>

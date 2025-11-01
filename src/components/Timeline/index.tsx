@@ -49,8 +49,11 @@ type ItemProps = Pick<DotProps, 'size' | 'icon' | 'color' | 'iconColor'> & {
     startOverflow?: boolean;
     /** end line even after of last item */
     endOverflow?: boolean;
+    /** act as min-height of line */
     lineSize?: number;
     lineColor?: string;
+    /** specify if we want to render opposite content or not */
+    renderOpposite?: boolean;
     children?: ReactNode;
     dotClassName?: string;
     lineClassName?: string;
@@ -60,12 +63,13 @@ const Item = ({
     reverse = false,
     startOverflow = false,
     endOverflow = false,
-    lineSize = 75,
+    lineSize = 50,
     lineColor = 'slate-300',
     size = 'md',
     icon = 'mdi:check',
     color = 'green-600',
     iconColor = 'white',
+    renderOpposite = true,
     children,
     dotClassName = '',
     lineClassName = '',
@@ -103,7 +107,7 @@ const Item = ({
 
     return (
         <div
-            className={`flex items-start justify-center gap-5 ${reverse ? 'flex-row-reverse' : 'flex-row'} ${className}`}
+            className={`flex items-stretch justify-center gap-5 ${reverse ? 'flex-row-reverse' : 'flex-row'} ${className}`}
             style={
                 {
                     '--color': parsedColor,
@@ -111,49 +115,53 @@ const Item = ({
                 } as CSSProperties
             }
         >
-            <div className='flex-1'>
-                {!!OppositeChild && cloneElement<OppositeProps>(OppositeChild, { ...OppositeChild.props })}
-            </div>
+            {renderOpposite && (
+                <div className='flex-1'>
+                    {cloneElement<OppositeProps>(OppositeChild || <></>, { ...OppositeChild?.props })}
+                </div>
+            )}
             <div className='flex shrink-0 flex-col items-center gap-5'>
                 {startOverflow && (
                     <div
-                        className={`w-0.5 rounded-md bg-(--line-color) ${lineClassName}`}
+                        className={`w-0.5 flex-1 rounded-md bg-(--line-color) ${lineClassName}`}
                         style={{
-                            height: `${lineSize}px`
+                            minHeight: `${lineSize}px`
                         }}
                     />
                 )}
-                {DotChild ? (
-                    cloneElement<DotProps>(DotChild, {
-                        size,
-                        icon,
-                        color,
-                        iconColor,
-                        children: DotChild.props?.children,
-                        className: `${dotClassName} ${DotChild.props?.className}`
-                    })
-                ) : (
-                    <div
-                        className={`rounded-circle flex aspect-square items-center justify-center bg-(--color) ${dotClassName}`}
-                        style={{
-                            width: `${circleSize}px`,
-                            height: `${circleSize}px`
-                        }}
-                    >
-                        <Icon icon={icon} size={iconSize} color={iconColor} />
-                    </div>
-                )}
+                <div className='shrink-0'>
+                    {DotChild ? (
+                        cloneElement<DotProps>(DotChild, {
+                            size,
+                            icon,
+                            color,
+                            iconColor,
+                            children: DotChild.props?.children,
+                            className: `${dotClassName} ${DotChild.props?.className}`
+                        })
+                    ) : (
+                        <div
+                            className={`rounded-circle flex aspect-square items-center justify-center bg-(--color) ${dotClassName}`}
+                            style={{
+                                width: `${circleSize}px`,
+                                height: `${circleSize}px`
+                            }}
+                        >
+                            <Icon icon={icon} size={iconSize} color={iconColor} />
+                        </div>
+                    )}
+                </div>
                 {endOverflow && (
                     <div
-                        className={`w-0.5 rounded-md bg-(--line-color) ${lineClassName}`}
+                        className={`w-0.5 flex-1 rounded-md bg-(--line-color) ${lineClassName}`}
                         style={{
-                            height: `${lineSize}px`
+                            minHeight: `${lineSize}px`
                         }}
                     />
                 )}
             </div>
             <div className='flex-1'>
-                {!!ContentChild && cloneElement<ContentProps>(ContentChild, { ...ContentChild.props })}
+                {cloneElement<ContentProps>(ContentChild || <></>, { ...ContentChild?.props })}
             </div>
         </div>
     );
@@ -172,6 +180,7 @@ type TimelineProps = Pick<
     | 'color'
     | 'iconColor'
     | 'lineColor'
+    | 'renderOpposite'
     | 'dotClassName'
     | 'lineClassName'
 > & {
@@ -184,30 +193,34 @@ const Timeline = ({
     endOverflow = false,
     icon = 'mdi:check',
     size = 'md',
-    lineSize = 75,
+    lineSize = 50,
     color = 'green-600',
     iconColor = 'white',
     lineColor = 'slate-300',
+    renderOpposite = true,
     children,
     dotClassName = '',
     lineClassName = '',
     className = ''
 }: TimelineProps) => {
     return (
-        <ul className={`flex flex-col gap-5 ${className}`}>
+        <ul className={`flex flex-col gap-0 ${className}`}>
             {Children.map(children, (Item, i) => {
                 if (!isValidElement<ItemProps>(Item)) return null;
                 return (
                     <li>
                         {cloneElement<ItemProps>(Item, {
                             startOverflow: (i === 0 && startOverflow) || i !== 0, //set startOverflow on all Timeline.Item except first one or even set it on first one if we set startOverflow prop on Timeline
-                            endOverflow: i === Children.count(children) - 1 && endOverflow, //only set endOverflow on Timeline.Item if set its prop and its last item
+                            endOverflow:
+                                (i === Children.count(children) - 1 && endOverflow) ||
+                                i !== Children.count(children) - 1, //set endOverflow on all Timeline.Item except last one or even set it on last one if we set endOverflow prop on Timeline
                             icon,
                             size,
                             lineSize,
                             color,
                             iconColor,
                             lineColor,
+                            renderOpposite,
                             lineClassName,
                             dotClassName,
                             ...Item.props
